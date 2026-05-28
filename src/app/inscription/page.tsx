@@ -349,14 +349,14 @@ export default function InscriptionPage() {
               <button 
                 type="button"
                 onClick={() => set("est_majeur", true)} 
-                className={`flex-1 py-4 border text-sm font-medium touch-manipulation min-h-[48px] ${data.est_majeur === true ? "border-[#C0440E] bg-[#C0440E]/5 text-[#C0440E]" : "border-black/10 text-[#6B6459] active:bg-black/5"}`}
+                className={`flex-1 py-4 border text-sm font-medium touch-manipulation select-none min-h-[48px] ${data.est_majeur === true ? "border-[#C0440E] bg-[#C0440E]/5 text-[#C0440E]" : "border-black/10 text-[#6B6459] active:bg-black/5"}`}
               >
                 Oui, je suis majeur·e
               </button>
               <button 
                 type="button"
                 onClick={() => set("est_majeur", false)} 
-                className={`flex-1 py-4 border text-sm font-medium touch-manipulation min-h-[48px] ${data.est_majeur === false ? "border-[#C0440E] bg-[#C0440E]/5 text-[#C0440E]" : "border-black/10 text-[#6B6459] active:bg-black/5"}`}
+                className={`flex-1 py-4 border text-sm font-medium touch-manipulation select-none min-h-[48px] ${data.est_majeur === false ? "border-[#C0440E] bg-[#C0440E]/5 text-[#C0440E]" : "border-black/10 text-[#6B6459] active:bg-black/5"}`}
               >
                 Non, je suis mineur·e
               </button>
@@ -625,20 +625,21 @@ function RadioCard({
   subtitle?: string;
 }) {
   return (
-    <button 
-      type="button" 
+    <div 
       onClick={onClick}
-      className={`w-full text-left px-4 py-3 border transition-all ${
+      className={`w-full cursor-pointer text-left px-4 py-3 border transition-all select-none ${
         checked 
           ? "border-[#C0440E] bg-[#C0440E]/5" 
-          : "border-black/10 bg-white hover:border-black/25"
+          : "border-black/10 bg-white hover:border-black/25 active:bg-black/5"
       }`}
+      role="radio"
+      aria-checked={checked}
     >
-      <div className="flex items-start gap-3">
-        <span className={`mt-0.5 w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
+      <div className="flex items-start gap-3 pointer-events-none">
+        <span className={`mt-0.5 w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
           checked ? "border-[#C0440E]" : "border-black/25"
         }`}>
-          {checked && <span className="w-2 h-2 rounded-full bg-[#C0440E]" />}
+          {checked && <span className="w-2.5 h-2.5 rounded-full bg-[#C0440E]" />}
         </span>
         <div>
           <p className="text-sm font-medium text-[#1C1917]">{title}</p>
@@ -647,7 +648,7 @@ function RadioCard({
           )}
         </div>
       </div>
-    </button>
+    </div>
   );
 }
 
@@ -673,20 +674,21 @@ function CheckCard({
   subtitle?: string;
 }) {
   return (
-    <button 
-      type="button" 
+    <div 
       onClick={onClick}
-      className={`w-full text-left px-4 py-3 border transition-all ${
+      className={`w-full cursor-pointer text-left px-4 py-3 border transition-all select-none ${
         checked 
           ? "border-[#C0440E] bg-[#C0440E]/5" 
-          : "border-black/10 bg-white hover:border-black/25"
+          : "border-black/10 bg-white hover:border-black/25 active:bg-black/5"
       }`}
+      role="checkbox"
+      aria-checked={checked}
     >
-      <div className="flex items-start gap-3">
-        <span className={`mt-0.5 w-4 h-4 border-2 flex-shrink-0 flex items-center justify-center ${
+      <div className="flex items-start gap-3 pointer-events-none">
+        <span className={`mt-0.5 w-5 h-5 border-2 flex-shrink-0 flex items-center justify-center rounded-sm ${
           checked ? "border-[#C0440E] bg-[#C0440E]" : "border-black/25"
         }`}>
-          {checked && <span className="text-white text-[10px] leading-none">✓</span>}
+          {checked && <span className="text-white text-xs leading-none">✓</span>}
         </span>
         <div>
           <p className="text-sm font-medium text-[#1C1917]">{title}</p>
@@ -695,6 +697,6 @@ function CheckCard({
           )}
         </div>
       </div>
-    </button>
+    </div>
   );
 }
