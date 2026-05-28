@@ -249,10 +249,10 @@ export default function InscriptionPage() {
         current.add(value);
       }
 
-      // Recalculer TOUT à partir de l'état des tronçons de base
+      // Recalculer TOUT à partir des tronçons individuels cochés
       const newSet = new Set<string>();
 
-      // Garder uniquement les tronçons individuels cochés (pas les regroupements)
+      // Étape 1 : garder les tronçons individuels cochés
       groupesVelo.forEach(groupe => {
         groupe.options.forEach(opt => {
           if (opt.children.length === 0 && current.has(opt.value)) {
@@ -261,27 +261,55 @@ export default function InscriptionPage() {
         });
       });
 
-      // Si "3_jours" est coché, on ajoute tout
-      if (current.has("3_jours") || newSet.size === groupesVelo.flatMap(g => g.options.filter(o => o.children.length === 0)).length) {
+      // Étape 2 : si 3_jours est coché, tout ajouter
+      if (current.has("3_jours")) {
         groupesVelo.forEach(groupe => {
           groupe.options.forEach(opt => {
             newSet.add(opt.value);
           });
         });
         newSet.add("3_jours");
-      } else {
-        // Ajouter les regroupements si tous leurs enfants sont présents
+        return { ...prev, parcours_velo: [...newSet] };
+      }
+
+      // Étape 3 : si tous les tronçons sont cochés, ajouter 3_jours
+      const allTroncons = groupesVelo.flatMap(g => g.options.filter(o => o.children.length === 0).map(o => o.value));
+      const allTronconsChecked = allTroncons.every(v => newSet.has(v));
+      if (allTronconsChecked) {
         groupesVelo.forEach(groupe => {
           groupe.options.forEach(opt => {
-            if (opt.children.length > 0) {
-              const allChildrenChecked = opt.children.every(child => newSet.has(child));
-              if (allChildrenChecked && opt.children.length > 0) {
-                newSet.add(opt.value);
-              }
-            }
+            newSet.add(opt.value);
           });
         });
+        newSet.add("3_jours");
+        return { ...prev, parcours_velo: [...newSet] };
       }
+
+      // Étape 4 : ajouter les regroupements si tous leurs enfants sont cochés
+      // Parcourir du plus petit regroupement au plus grand
+      groupesVelo.forEach(groupe => {
+        // Demi-journées d'abord
+        groupe.options.forEach(opt => {
+          if (opt.children.length > 0 && !opt.value.includes("_entier")) {
+            const allChildrenChecked = opt.children.every(child => newSet.has(child));
+            if (allChildrenChecked) {
+              newSet.add(opt.value);
+            }
+          }
+        });
+        // Puis jour entier
+        groupe.options.forEach(opt => {
+          if (opt.value.includes("_entier")) {
+            const allChildrenChecked = opt.children.every(child => {
+              // Vérifie si l'enfant est un regroupement (déjà ajouté) ou un tronçon
+              return newSet.has(child);
+            });
+            if (allChildrenChecked) {
+              newSet.add(opt.value);
+            }
+          }
+        });
+      });
 
       return { ...prev, parcours_velo: [...newSet] };
     });
@@ -289,14 +317,15 @@ export default function InscriptionPage() {
 
   const toggle3Jours = () => {
     setData(prev => {
-      const allTroncons = groupesVelo.flatMap(g => g.options.map(o => o.value));
       if (prev.parcours_velo.includes("3_jours")) {
         return { ...prev, parcours_velo: [] };
       } else {
-        return { ...prev, parcours_velo: ["3_jours", ...allTroncons] };
+        const allTroncons = groupesVelo.flatMap(g => g.options.map(o => o.value));
+        allTroncons.push("3_jours");
+        return { ...prev, parcours_velo: [...new Set(allTroncons)] };
       }
     });
-  };  
+  };
 
   if (done) return (
     <main className="min-h-screen bg-[#F5F0E8] flex items-center justify-center px-6">
