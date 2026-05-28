@@ -1,0 +1,204 @@
+"use client";
+
+import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+
+const CARD_VARIANTS = ["a", "b", "c", "d", "e"] as const;
+
+function getVariant(id: string): string {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash << 5) - hash + id.charCodeAt(i);
+    hash |= 0;
+  }
+  const v = CARD_VARIANTS[Math.abs(hash) % CARD_VARIANTS.length];
+  return `card-${v}`;
+}
+
+const cibles = [
+  { slug: "enseignants", label: "Enseignant·es", emoji: "🏫" },
+  { slug: "parents", label: "Parents", emoji: "👨‍👩‍👧‍👦" },
+  { slug: "élèves", label: "Élèves", emoji: "📚" },
+  { slug: "grand-public", label: "Grand public", emoji: "🗣️" },
+];
+
+export default function HomePage() {
+  const [phase, setPhase] = useState<"intro" | "transition" | "loaded">("intro");
+  const [argumentaires, setArgumentaires] = useState<any[]>([]);
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setPhase("transition"), 2000);
+    const t2 = setTimeout(() => setPhase("loaded"), 3200);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, []);
+
+  useEffect(() => {
+    async function load() {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("argumentaires")
+        .select("id, title, target_audience, created_at, status")
+        .in("status", ["published", "published_flagged"])
+        .order("created_at", { ascending: false })
+        .limit(6);
+      setArgumentaires(data || []);
+    }
+    load();
+  }, []);
+
+  const isIntro = phase === "intro";
+  const baseLine = "font-serif font-black leading-[0.95] absolute transition-all duration-[1.4s] ease-[cubic-bezier(0.22,1,0.36,1)]";
+  const subLine = "text-ink-light font-medium tracking-wide uppercase absolute transition-all duration-[1.4s] ease-[cubic-bezier(0.22,1,0.36,1)]";
+
+  return (
+    <main className="max-w-5xl mx-auto px-4 py-8 sm:py-12">
+      {/* Hero */}
+      <div className={`mb-0 sm:mb-10 transition-all duration-[1.4s] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+        isIntro ? "relative min-h-[400px] sm:min-h-[180px]" : ""
+      }`}>
+        {/* Ligne 1 : Plateforme */}
+        <h1
+          className={`font-serif font-black leading-[0.95] transition-all duration-[1.4s] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+            isIntro
+              ? "text-4xl sm:text-7xl lg:text-8xl absolute left-1/2 -translate-x-1/2 top-0 w-full text-center"
+              : "text-3xl sm:text-4xl lg:text-6xl"
+          }`}
+        >
+          Plateforme
+        </h1>
+
+        {/* Ligne 2 : d'argumentation */}
+        <h2
+          className={`font-serif font-black leading-[0.95] transition-all duration-[1.4s] ease-[cubic-bezier(0.22,1,0.36,1)] delay-100 ${
+            isIntro
+              ? "text-4xl sm:text-7xl lg:text-8xl absolute left-1/2 -translate-x-1/2 top-[1.1em] text-brick w-full text-center"
+              : "text-3xl sm:text-4xl lg:text-6xl text-brick"
+          }`}
+        >
+          d&apos;argumentation
+        </h2>
+
+        {/* Filet */}
+        <hr
+          className={`rule-accent transition-all duration-[1.2s] ease-[cubic-bezier(0.22,1,0.36,1)] delay-200 ${
+            isIntro
+              ? "opacity-0 absolute top-[4.5em] sm:top-[7em] left-1/2 -translate-x-1/2"
+              : "opacity-100 mt-3 sm:mt-4"
+          }`}
+        />
+
+        {/* Sous-titres — en absolute pendant l'intro, en flow normal après */}
+        {isIntro ? (
+          <>
+            <p className="text-ink-light font-medium tracking-wide uppercase absolute text-base sm:text-2xl left-1/2 -translate-x-1/2 top-[6.5em] sm:top-[11em] text-center w-[300px] sm:w-auto transition-all duration-[1.4s] ease-[cubic-bezier(0.22,1,0.36,1)] delay-150">
+              Des argumentaires solides,
+            </p>
+            <p className="text-ink-light font-medium tracking-wide uppercase absolute text-base sm:text-2xl left-1/2 -translate-x-1/2 top-[8em] sm:top-[12.3em] text-center w-[300px] sm:w-auto transition-all duration-[1.4s] ease-[cubic-bezier(0.22,1,0.36,1)] delay-200">
+              sourcés et validés
+            </p>
+            <p className="text-ink-light font-medium tracking-wide uppercase absolute text-base sm:text-2xl left-1/2 -translate-x-1/2 top-[9.5em] sm:top-[13.6em] text-center w-[300px] sm:w-auto transition-all duration-[1.4s] ease-[cubic-bezier(0.22,1,0.36,1)] delay-250">
+              collectivement par le
+            </p>
+            <p className="text-ink-light font-medium tracking-wide uppercase absolute text-base sm:text-2xl left-1/2 -translate-x-1/2 top-[11em] sm:top-[14.9em] text-center w-[300px] sm:w-auto transition-all duration-[1.4s] ease-[cubic-bezier(0.22,1,0.36,1)] delay-300">
+              mouvement des enseignant·es
+            </p>
+          </>
+        ) : (
+          <div className="text-right text-[10px] sm:text-sm text-ink-light font-medium tracking-wide uppercase mt-2 sm:mt-3 space-y-0.5 sm:space-y-1">
+            <p>Des argumentaires solides,</p>
+            <p>sourcés et validés</p>
+            <p>collectivement par le</p>
+            <p>mouvement des enseignant·es</p>
+          </div>
+        )}
+      </div>
+
+      {/* Contenu qui apparaît après */}
+      <div
+        className={`transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          phase === "loaded"
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 translate-y-8 pointer-events-none"
+        }`}
+      >
+        {/* Rubriques */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-8 sm:mb-16">
+          {cibles.map((cible) => (
+            <Link
+              key={cible.slug}
+              href={`/rubrique/${cible.slug}`}
+              className="card-brut card-a flex items-center gap-2 py-2.5 sm:py-3 px-2 sm:px-3"
+            >
+              <span className="text-lg sm:text-xl flex-shrink-0">{cible.emoji}</span>
+              <span className="font-bold text-[10px] sm:text-[11px] tracking-wide uppercase leading-tight">
+                {cible.label}
+              </span>
+            </Link>
+          ))}
+        </div>
+
+        {/* Derniers argumentaires */}
+        {argumentaires.length > 0 && (
+          <>
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <h2 className="font-serif font-black text-xl sm:text-3xl">
+                Derniers argumentaires
+              </h2>
+              <Link href="/argumentaires" className="btn-ochre text-[10px] sm:text-xs px-2.5 sm:px-3 py-1.5 sm:py-2">
+                Tout voir →
+              </Link>
+            </div>
+
+            <div className="grid gap-4 sm:gap-6">
+              {argumentaires.map((a) => (
+                <Link
+                  key={a.id}
+                  href={`/argumentaires/${a.id}`}
+                  className={`card-brut ${getVariant(a.id)} flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3`}
+                >
+                  <div>
+                    <span className="font-bold text-sm sm:text-base text-ink">
+                      {a.title}
+                    </span>
+                    <p className="text-[9px] sm:text-[10px] text-ink-light mt-0.5 font-medium tracking-wide uppercase">
+                      {new Date(a.created_at).toLocaleDateString("fr-BE")}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0 mt-1 sm:mt-0">
+                    <span className="badge-brut badge-neutral text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5">
+                      {a.target_audience === "public"
+                        ? "Grand public"
+                        : a.target_audience}
+                    </span>
+                    {a.status === "published_flagged" && (
+                      <span className="badge-brut badge-urgent text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5">
+                        Sources
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </>
+        )}
+
+        {argumentaires.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-ink-light text-base font-medium tracking-wide uppercase mb-4">
+              Aucun argumentaire publié pour le moment.
+            </p>
+            <Link href="/soumettre" className="btn-primary text-xs">
+              Soumettez le premier !
+            </Link>
+          </div>
+        )}
+
+        <hr className="rule-thick mt-12 sm:mt-16" />
+      </div>
+    </main>
+  );
+}

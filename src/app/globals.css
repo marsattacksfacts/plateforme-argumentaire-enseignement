@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #F5F0E8;
+  --color-ink: #1C1917;
+  --color-brick: #C0440E;
+  --color-brick-dark: #8A2E06;
+  --color-ochre: #E8B43A;
+  --color-concrete: #6B6459;
+  --color-ink-light: #3D3530;
+  --color-brick-light: #C0440E10;
+  --color-ochre-light: #FDF3D0;
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "Space Grotesk", system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    line-height: 1.15;
+  }
+
+  h1 { font-size: clamp(1.8rem, 5vw, 3.2rem); }
+  h2 { font-size: clamp(1.4rem, 3vw, 2rem); }
+  h3 { font-size: clamp(1.1rem, 2vw, 1.4rem); }
+}
