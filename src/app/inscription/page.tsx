@@ -266,10 +266,11 @@ export default function InscriptionPage() {
       // Recalculer les parents
       const finalSet = new Set(current);
       
-      // Pour chaque option avec des enfants, vérifier si tous les enfants sont cochés
+      // Recalculer les parents — d'abord les demi-journées, puis les jours entiers
       groupesVelo.forEach(groupe => {
+        // Demi-journées
         groupe.options.forEach(opt => {
-          if (opt.children.length > 0) {
+          if (opt.children.length > 0 && !opt.value.includes("_entier")) {
             const allChildrenChecked = opt.children.every(child => finalSet.has(child));
             if (allChildrenChecked) {
               finalSet.add(opt.value);
@@ -280,6 +281,20 @@ export default function InscriptionPage() {
         });
       });
       
+      // Puis jours entiers (pour qu'ils voient les demi-journées déjà cochées)
+      groupesVelo.forEach(groupe => {
+        groupe.options.forEach(opt => {
+          if (opt.value.includes("_entier")) {
+            const allChildrenChecked = opt.children.every(child => finalSet.has(child));
+            if (allChildrenChecked) {
+              finalSet.add(opt.value);
+            } else {
+              finalSet.delete(opt.value);
+            }
+          }
+        });
+      });
+        
       // Vérifier 3_jours
       const allTroncons = groupesVelo.flatMap(g => g.options.filter(o => o.children.length === 0).map(o => o.value));
       const allChecked = allTroncons.every(v => finalSet.has(v));
