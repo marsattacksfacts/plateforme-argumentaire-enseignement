@@ -42,6 +42,13 @@ export default function Home() {
   const [showTroncons, setShowTroncons] = useState(false);
   const [haltes, setHaltes] = useState<Halte[]>([]);
   const [troncons, setTroncons] = useState<Troncon[]>([]);
+  const [nbInscrits, setNbInscrits] = useState(0);
+
+  useEffect(() => {
+    supabase.from("inscriptions").select("*", { count: "exact", head: true }).then(({ count }) => {
+      setNbInscrits(count || 0);
+    });
+  }, []);
 
   useEffect(() => {
     supabase.from("haltes").select("*").order("ordre").then(({ data }) => setHaltes(data || []));
@@ -89,6 +96,8 @@ export default function Home() {
           <span className="font-serif text-2xl font-black text-[#C0440E]">3 <span className="text-xs font-sans font-medium uppercase tracking-widest text-[#6B6459]">jours</span></span>
           <span className="text-[#6B6459] text-sm">·</span>
           <span className="font-serif text-2xl font-black text-[#C0440E]">{haltes.length} <span className="text-xs font-sans font-medium uppercase tracking-widest text-[#6B6459]">étapes</span></span>
+          <span className="text-[#6B6459] text-sm">·</span>
+          <span className="font-serif text-2xl font-black text-[#C0440E]">{nbInscrits} <span className="text-xs font-sans font-medium uppercase tracking-widest text-[#6B6459]">inscrits</span></span>
         </div>
 
         <div className="space-y-4 text-[0.9rem] md:text-[0.95rem] leading-relaxed text-[#3D3530] mb-10 max-w-2xl">
@@ -149,16 +158,48 @@ export default function Home() {
           {!showTroncons ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-px bg-white/10">
               {haltes.map((h) => {
-                const key = TYPE_KEYS.includes(h.type);
+                const isNuit = h.type === "nuit";
+                const isEtapeCle = h.type === "etape_cle";
+                const isDepart = h.type === "depart";
+                const isArrivee = h.type === "arrivee";
+                const isKey = isNuit || isEtapeCle || isDepart || isArrivee;
+                
                 return (
-                  <div key={h.id} className={`p-4 ${key ? "bg-[#C0440E]/20" : "bg-[#1C1917]"}`}>
-                    <p className={`font-serif text-2xl font-black leading-none mb-1 ${key ? "text-[#C0440E]" : "text-white/15"}`}>
+                  <div
+                    key={h.id}
+                    className={`p-4 relative ${
+                      isNuit ? "bg-[#E8B43A]/15" : 
+                      isEtapeCle ? "bg-[#C0440E]/20" : 
+                      isDepart ? "bg-[#C0440E]/20" : 
+                      isArrivee ? "bg-[#C0440E]/20" : 
+                      "bg-[#1C1917]"
+                    }`}
+                  >
+                    <p className={`font-serif text-2xl font-black leading-none mb-1 ${
+                      isKey ? "text-[#C0440E]" : "text-white/15"
+                    }`}>
                       {String(h.ordre).padStart(2, "0")}
                     </p>
                     <p className="font-medium text-sm text-[#F5F0E8]">{h.ville}</p>
-                    <p className="text-[10px] uppercase tracking-widest text-[#F5F0E8]/40 mt-0.5">
-                      {h.type === "nuit" ? `Nuit J${h.jour}` : TYPE_LABELS[h.type] || h.type}
+                    <p className={`text-[10px] uppercase tracking-widest mt-0.5 ${
+                      isNuit ? "text-[#E8B43A]" : 
+                      isEtapeCle ? "text-[#C0440E]" : 
+                      isDepart ? "text-[#C0440E] opacity-70" : 
+                      isArrivee ? "text-[#C0440E] opacity-70" : 
+                      "text-[#F5F0E8] opacity-40"
+                    }`}>
+                      {isNuit ? `🌙 Nuit J${h.jour}` : 
+                      isEtapeCle ? `🍽️ Étape clé` : 
+                      isDepart ? "Départ" : 
+                      isArrivee ? "Arrivée" : 
+                      TYPE_LABELS[h.type] || h.type}
                     </p>
+                    {isNuit && (
+                      <span className="absolute top-2 right-2 text-xs">🌙</span>
+                    )}
+                    {isEtapeCle && (
+                      <span className="absolute top-2 right-2 text-xs">🍽️</span>
+                    )}
                   </div>
                 );
               })}
