@@ -241,77 +241,55 @@ export default function InscriptionPage() {
   const toggleParcours = (value: string) => {
     setData(prev => {
       const current = new Set(prev.parcours_velo);
+      
+      // Trouver l'option cliquée
+      let clickedOption: { value: string; children: string[] } | null = null;
+      for (const groupe of groupesVelo) {
+        const found = groupe.options.find(o => o.value === value);
+        if (found) { clickedOption = found; break; }
+      }
+      
+      if (!clickedOption) return prev;
+      
       const isChecked = current.has(value);
-
+      
       if (isChecked) {
+        // DÉCOCHER : retirer la valeur et tous ses enfants
         current.delete(value);
+        clickedOption.children.forEach(child => current.delete(child));
       } else {
+        // COCHER : ajouter la valeur et tous ses enfants
         current.add(value);
+        clickedOption.children.forEach(child => current.add(child));
       }
-
-      // Recalculer TOUT à partir des tronçons individuels cochés
-      const newSet = new Set<string>();
-
-      // Étape 1 : garder les tronçons individuels cochés
+      
+      // Recalculer les parents
+      const finalSet = new Set(current);
+      
+      // Pour chaque option avec des enfants, vérifier si tous les enfants sont cochés
       groupesVelo.forEach(groupe => {
         groupe.options.forEach(opt => {
-          if (opt.children.length === 0 && current.has(opt.value)) {
-            newSet.add(opt.value);
+          if (opt.children.length > 0) {
+            const allChildrenChecked = opt.children.every(child => finalSet.has(child));
+            if (allChildrenChecked) {
+              finalSet.add(opt.value);
+            } else {
+              finalSet.delete(opt.value);
+            }
           }
         });
       });
-
-      // Étape 2 : si 3_jours est coché, tout ajouter
-      if (current.has("3_jours")) {
-        groupesVelo.forEach(groupe => {
-          groupe.options.forEach(opt => {
-            newSet.add(opt.value);
-          });
-        });
-        newSet.add("3_jours");
-        return { ...prev, parcours_velo: [...newSet] };
-      }
-
-      // Étape 3 : si tous les tronçons sont cochés, ajouter 3_jours
+      
+      // Vérifier 3_jours
       const allTroncons = groupesVelo.flatMap(g => g.options.filter(o => o.children.length === 0).map(o => o.value));
-      const allTronconsChecked = allTroncons.every(v => newSet.has(v));
-      if (allTronconsChecked) {
-        groupesVelo.forEach(groupe => {
-          groupe.options.forEach(opt => {
-            newSet.add(opt.value);
-          });
-        });
-        newSet.add("3_jours");
-        return { ...prev, parcours_velo: [...newSet] };
+      const allChecked = allTroncons.every(v => finalSet.has(v));
+      if (allChecked) {
+        finalSet.add("3_jours");
+      } else {
+        finalSet.delete("3_jours");
       }
-
-      // Étape 4 : ajouter les regroupements si tous leurs enfants sont cochés
-      // Parcourir du plus petit regroupement au plus grand
-      groupesVelo.forEach(groupe => {
-        // Demi-journées d'abord
-        groupe.options.forEach(opt => {
-          if (opt.children.length > 0 && !opt.value.includes("_entier")) {
-            const allChildrenChecked = opt.children.every(child => newSet.has(child));
-            if (allChildrenChecked) {
-              newSet.add(opt.value);
-            }
-          }
-        });
-        // Puis jour entier
-        groupe.options.forEach(opt => {
-          if (opt.value.includes("_entier")) {
-            const allChildrenChecked = opt.children.every(child => {
-              // Vérifie si l'enfant est un regroupement (déjà ajouté) ou un tronçon
-              return newSet.has(child);
-            });
-            if (allChildrenChecked) {
-              newSet.add(opt.value);
-            }
-          }
-        });
-      });
-
-      return { ...prev, parcours_velo: [...newSet] };
+      
+      return { ...prev, parcours_velo: [...finalSet] };
     });
   };
 
