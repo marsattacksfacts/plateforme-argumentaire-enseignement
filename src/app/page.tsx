@@ -46,6 +46,7 @@ const TYPE_KEYS = ["depart", "etape_cle", "nuit", "arrivee"];
 export default function Home() {
   const [showTroncons, setShowTroncons] = useState(false);
   const [haltes, setHaltes] = useState<Halte[]>([]);
+  const [expandedHalte, setExpandedHalte] = useState<number | null>(null);
   const [troncons, setTroncons] = useState<Troncon[]>([]);
   const [nbInscrits, setNbInscrits] = useState(0);
 
@@ -173,16 +174,19 @@ export default function Home() {
                 return (
                   <div
                     key={h.id}
-                    className={`p-4 relative group cursor-pointer ${
-                      isNuit ? "bg-[#E8B43A]/15 lg:hover:bg-[#E8B43A]/25" : 
-                      isEtapeCle ? "bg-[#C0440E]/20 lg:hover:bg-[#C0440E]/30" : 
-                      isDepart ? "bg-[#C0440E]/20 lg:hover:bg-[#C0440E]/30" : 
-                      isArrivee ? "bg-[#C0440E]/20 lg:hover:bg-[#C0440E]/30" : 
-                      "bg-[#1C1917] lg:hover:bg-[#2a2420]"
-                    } ${hasDetails ? "lg:hover:ring-2 lg:hover:ring-[#C0440E]/50 lg:hover:shadow-2xl lg:hover:shadow-black/50 lg:hover:z-20" : ""}`}
+                    className={`group relative ${hasDetails ? "cursor-pointer" : ""} ${
+                      isNuit ? "bg-[#E8B43A]/15 hover:bg-[#E8B43A]/25" : 
+                      isEtapeCle ? "bg-[#C0440E]/20 hover:bg-[#C0440E]/30" : 
+                      isDepart ? "bg-[#C0440E]/20 hover:bg-[#C0440E]/30" : 
+                      isArrivee ? "bg-[#C0440E]/20 hover:bg-[#C0440E]/30" : 
+                      "bg-[#1C1917] hover:bg-[#2a2420]"
+                    } transition-colors duration-200`}
                   >
-                    {/* Contenu normal */}
-                    <div>
+                    {/* Zone cliquable pour mobile */}
+                    <div 
+                      className="p-4"
+                      onClick={() => hasDetails && setExpandedHalte(expandedHalte === h.id ? null : h.id)}
+                    >
                       <p className={`font-serif text-2xl font-black leading-none mb-1 ${
                         isKey ? "text-[#C0440E]" : "text-white/15"
                       }`}>
@@ -206,9 +210,11 @@ export default function Home() {
                       {isEtapeCle && <span className="absolute top-2 right-2 text-xs">🍽️</span>}
                     </div>
                     
-                    {/* Détails en absolute — ne change pas la hauteur de la carte */}
+                    {/* Détails en absolute pour ne pas pousser la grille */}
                     {hasDetails && (
-                      <div className="hidden group-hover:block absolute left-0 right-0 top-full mt-1 bg-[#1C1917] border border-white/10 p-3 shadow-2xl z-30 text-[#F5F0E8] text-xs space-y-1">
+                      <div className={`absolute left-0 right-0 top-full bg-[#1C1917] border border-[#C0440E]/30 p-3 shadow-2xl z-30 text-[#F5F0E8] text-xs space-y-1 ${
+                        expandedHalte === h.id ? "block" : "hidden group-hover:block"
+                      }`}>
                         <p className="font-bold text-sm mb-1">{h.ville}</p>
                         {h.lieu && <p>📍 {h.lieu}</p>}
                         {h.adresse && <p>📫 {h.adresse}</p>}
