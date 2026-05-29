@@ -325,13 +325,24 @@ export default function InscriptionPage() {
       <div className="max-w-md w-full text-center">
         <p className="text-4xl mb-6">✉️</p>
         <h1 className="font-serif text-3xl font-black mb-4 text-[#1C1917]">Inscription reçue !</h1>
-        <p className="text-sm text-[#6B6459] leading-relaxed mb-8">
-          Merci <strong className="text-[#1C1917]">{data.prenom}</strong> de rejoindre l'aventure.
+        <p className="text-sm text-[#6B6459] leading-relaxed mb-6">
+          Merci <strong className="text-[#1C1917]">{data.prenom}</strong> de rejoindre l&apos;aventure.
           On te recontacte très vite avec les infos pratiques.
           En attendant, parle-en autour de toi !
         </p>
+        
+        <a
+          href="https://chat.whatsapp.com/TON_CODE_INVITATION"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 bg-green-600 text-white font-medium px-6 py-3 hover:bg-green-700 transition-colors mb-6"
+        >
+          📱 Rejoindre la communauté WhatsApp
+        </a>
+        
+        <br />
         <Link href="/" className="text-sm underline text-[#C0440E] hover:text-[#8A2E06]">
-          ← Retour à l'accueil
+          ← Retour à l&apos;accueil
         </Link>
       </div>
     </main>
