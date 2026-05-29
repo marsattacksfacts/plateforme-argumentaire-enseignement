@@ -158,6 +158,7 @@ interface Halte {
   adresse: string | null;
   notes: string | null;
   heure_rassemblement: string | null;
+  heure_rassemblement_depart: string | null;
 }
 
 interface Troncon {
@@ -229,6 +230,8 @@ export default function AdminDashboard() {
         ...h,
         heure_arrivee: toTimeValue(h.heure_arrivee),
         heure_depart: toTimeValue(h.heure_depart),
+        heure_rassemblement: toTimeValue(h.heure_rassemblement),
+        heure_rassemblement_depart: toTimeValue(h.heure_rassemblement_depart),
       }))
     );
     setEditedTroncons(JSON.parse(JSON.stringify(troncons)));
@@ -353,6 +356,7 @@ export default function AdminDashboard() {
           adresse: h.adresse || null,
           notes: h.notes || null,
           heure_rassemblement: h.heure_rassemblement || null,
+          heure_rassemblement_depart: h.heure_rassemblement_depart || null,
         }).eq("id", h.id);
       }
     }
@@ -642,7 +646,8 @@ export default function AdminDashboard() {
                       <th className="p-2">Départ</th>
                       <th className="p-2">Lieu</th>
                       <th className="p-2">Adresse</th>
-                      <th className="p-2">Rass.</th>
+                      <th className="p-2">Rass. Arriv.</th>
+                      <th className="p-2">Rass. dép.</th>
                       <th className="p-2">Notes</th>
                     </tr></thead>
                     <tbody>
@@ -707,6 +712,13 @@ export default function AdminDashboard() {
                               <input type="time" value={h.heure_rassemblement || ""} onChange={e => updateHalte(h.id, "heure_rassemblement", e.target.value)} className="w-full border border-black/15 px-1 py-0.5 text-xs bg-white" />
                             ) : (
                               <span className="text-[10px]">{h.heure_rassemblement || "—"}</span>
+                            )}
+                          </td>
+                          <td className="p-2">
+                            {editMode ? (
+                              <input type="time" value={h.heure_rassemblement_depart || ""} onChange={e => updateHalte(h.id, "heure_rassemblement_depart", e.target.value)} className="w-full border border-black/15 px-1 py-0.5 text-xs bg-white" />
+                            ) : (
+                              <span className="text-[10px]">{h.heure_rassemblement_depart || "—"}</span>
                             )}
                           </td>
                           <td className="p-2">

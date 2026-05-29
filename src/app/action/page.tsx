@@ -20,6 +20,7 @@ interface Halte {
   adresse: string | null;
   notes: string | null;
   heure_rassemblement: string | null;
+  heure_rassemblement_depart: string | null;
 }
 
 interface Troncon {
@@ -53,11 +54,9 @@ export default function ActionPage() {
     if (!acc.find(g => g.key === key)) {
       const haltesDuGroupe = haltes.filter(h => h.jour === halte.jour && h.demi_journee === halte.demi_journee).sort((a, b) => a.ordre - b.ordre);
       
-      // Pour le trajet : première ville de la demi-journée → dernière ville de la demi-journée
       const premiere = haltesDuGroupe[0];
       const derniere = haltesDuGroupe[haltesDuGroupe.length - 1];
       
-      // Pour le km : somme des tronçons dont l'arrivée est dans cette demi-journée
       const kmDuGroupe = troncons
         .filter(t => {
           const arr = haltes.find(h => h.id === t.halte_arrivee_id);
@@ -65,12 +64,11 @@ export default function ActionPage() {
         })
         .reduce((s, t) => s + t.distance_km, 0);
       
-      // Pour l'affichage du trajet : on veut la première ville de départ réelle
-      // Si c'est l'après-midi, le départ réel est la dernière ville du matin (où les cyclistes ont dîné)
+      // Ville de départ réelle : chercher la dernière halte avant ce groupe
       let villeDepart = premiere.ville;
-      if (halte.demi_journee === "apres_midi") {
-        const derniereDuMatin = haltes.find(h => h.jour === halte.jour && h.demi_journee === "matin" && h.ordre === Math.max(...haltes.filter(h2 => h2.jour === halte.jour && h2.demi_journee === "matin").map(h2 => h2.ordre)));
-        if (derniereDuMatin) villeDepart = derniereDuMatin.ville;
+      const haltePrecedente = haltes.find(h => h.ordre === premiere.ordre - 1);
+      if (haltePrecedente) {
+        villeDepart = haltePrecedente.ville;
       }
       
       acc.push({
@@ -80,7 +78,7 @@ export default function ActionPage() {
         label: `${JOURS[halte.jour]} — ${halte.demi_journee === "matin" ? "Matin" : "Après-midi"}`,
         trajet: `${villeDepart} → ${derniere.ville}`,
         km: Math.round(kmDuGroupe * 10) / 10,
-        premiere: { ...premiere, ville: villeDepart }, // On écrase la ville de départ pour l'affichage
+        premiere: { ...premiere, ville: villeDepart },
         derniere,
       });
     }
@@ -185,12 +183,36 @@ export default function ActionPage() {
                     {groupe.trajet} — <strong>{groupe.km} km</strong>
                   </p>
                 </div>
-                {(groupe.premiere.heure_rassemblement || groupe.premiere.heure_depart) && (
-                  <p className="text-xs text-[#6B6459]">
-                    🕐 Rassemblement {groupe.premiere.heure_rassemblement || groupe.premiere.heure_depart} {groupe.premiere.ville}
-                    {groupe.premiere.heure_depart && ` · Départ ${groupe.premiere.heure_depart}`}
-                  </p>
-                )}
+                {(() => {
+                  // Trouver la halte de départ réelle
+                  const halteDepartReelle = haltes.find(h => h.ville === groupe.premiere.ville.split(" → ")[0]) || groupe.premiere;
+                  const isDemiJourneeDepart = groupe.demi === "matin";
+                  const isNuitDepart = halteDepartReelle.type === "nuit";
+                  
+                  if (isDemiJourneeDepart) {
+                    // Matin : afficher rassemblement + départ
+                    const rassemblement = isNuitDepart 
+                      ? halteDepartReelle.heure_rassemblement_depart 
+                      : halteDepartReelle.heure_rassemblement;
+                    const depart = halteDepartReelle.heure_depart;
+                    
+                    return (rassemblement || depart) ? (
+                      <p className="text-xs text-[#6B6459]">
+                        {rassemblement && <>🕐 Rassemblement {rassemblement} {halteDepartReelle.ville}</>}
+                        {rassemblement && depart && <> · </>}
+                        {depart && <>🏁 Départ {depart}</>}
+                      </p>
+                    ) : null;
+                  } else {
+                    // Après-midi : juste l'heure de départ de la halte de départ réelle
+                    const depart = halteDepartReelle.heure_depart;
+                    return depart ? (
+                      <p className="text-xs text-[#6B6459]">
+                        🏁 Départ {depart} {halteDepartReelle.ville}
+                      </p>
+                    ) : null;
+                  }
+                })()}
                 <ul className="text-sm space-y-1">
                   {haltesDuGroupe.map((h, i) => (
                     <li key={h.id} className="flex flex-col mb-2">
@@ -201,9 +223,9 @@ export default function ActionPage() {
                         {h.type === "etape_cle" && " (dîner)"}
                         {h.type === "nuit" && " (nuit)"}
                       </span>
-                      {(h.lieu || h.adresse || h.heure_rassemblement || h.notes) && (
+                      {(h.lieu || h.adresse || h.notes || (h.type !== "nuit" && h.heure_rassemblement && groupe.demi === "matin")) && (
                         <span className="text-xs text-[#6B6459] ml-4 mt-0.5 space-x-2">
-                          {h.heure_rassemblement && <span>🕐 Rassemblement : {h.heure_rassemblement}</span>}
+                          {groupe.demi === "matin" && h.heure_rassemblement && <span>🕐 Rassemblement : {h.heure_rassemblement}</span>}
                           {h.lieu && <span>📍 {h.lieu}</span>}
                           {h.adresse && <span>· {h.adresse}</span>}
                           {h.notes && <span className="italic">· {h.notes}</span>}

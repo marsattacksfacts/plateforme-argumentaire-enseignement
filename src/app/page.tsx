@@ -20,6 +20,7 @@ interface Halte {
   adresse: string | null;
   notes: string | null;
   heure_rassemblement: string | null;
+  heure_rassemblement_depart: string | null;
 }
 
 interface Troncon {
@@ -213,6 +214,9 @@ export default function Home() {
                         {h.adresse && <p>📫 {h.adresse}</p>}
                         {h.heure_rassemblement && <p>🕐 Rassemblement : {h.heure_rassemblement}</p>}
                         {h.heure_arrivee && <p>🚴 Arrivée cyclistes : {h.heure_arrivee}</p>}
+                        {h.type === "nuit" && h.heure_rassemblement_depart && (
+                          <p>🕐 Rassemblement départ : {h.heure_rassemblement_depart}</p>
+                        )}
                         {h.heure_depart && <p>🏁 Départ : {h.heure_depart}</p>}
                         {h.notes && <p className="italic opacity-70">{h.notes}</p>}
                       </div>
