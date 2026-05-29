@@ -59,13 +59,13 @@ const TRACE: [number, number][] = [...TRACE_J1, ...TRACE_J2, ...TRACE_J3];
 // ── HALTES ─────────────────────────────────────────────────────────────────
 // Points extraits directement du GPX (coordonnées réelles)
 
-const HALTES_PRINCIPALES = [
+const HALTES_PRINCIPALES_RAW = [
   { label: "Verviers", type: "Départ", lat: 50.592580, lng: 5.861104, variant: "depart" as const },
-  { label: "Herve", type: "Halte", lat: 50.613100, lng: 5.833085, variant: "simple" as const },
-  { label: "Soumagne", type: "Halte", lat: 50.621561, lng: 5.829529, variant: "simple" as const },
-  { label: "Chênée", type: "Halte", lat: 50.615214, lng: 5.621465, variant: "simple" as const },
+  { label: "Herve", type: "Halte", lat: 50.614, lng: 5.793, variant: "simple" as const },
+  { label: "Soumagne", type: "Halte", lat: 50.622, lng: 5.745, variant: "simple" as const },
+  { label: "Chênée", type: "Halte", lat: 50.619, lng: 5.621, variant: "simple" as const },
   { label: "Liège", type: "Étape clé", lat: 50.640309, lng: 5.786100, variant: "etape" as const },
-  { label: "Seraing", type: "Halte", lat: 50.590478, lng: 5.458498, variant: "simple" as const },
+  { label: "Seraing", type: "Halte", lat: 50.603, lng: 5.507, variant: "simple" as const },
   { label: "Huy", type: "Nuit J1", lat: 50.523751, lng: 5.231206, variant: "nuit" as const },
   { label: "Andenne", type: "Halte", lat: 50.498974, lng: 5.120757, variant: "simple" as const },
   { label: "Jambes", type: "Halte", lat: 50.469450, lng: 5.003953, variant: "simple" as const },
@@ -80,6 +80,12 @@ const HALTES_PRINCIPALES = [
   { label: "Bruxelles", type: "Arrivée", lat: 50.845200, lng: 4.370142, variant: "arrivee" as const },
 ];
 
+// Recaler les haltes sur le tracé GPX
+const HALTES_PRINCIPALES = HALTES_PRINCIPALES_RAW.map(h => {
+  const [lat, lng] = findClosestPointOnTrace(h.lat, h.lng, TRACE);
+  return { ...h, lat, lng };
+});
+
 // Plus de HALTES_SIMPLES séparées : tout est dans HALTES_PRINCIPALES
 
 // ── CONFIG CARTE ───────────────────────────────────────────────────────────
@@ -93,6 +99,21 @@ const CARTE_CONFIG = {
 };
 
 // ── HELPERS ─────────────────────────────────────────────────────────────────
+
+function findClosestPointOnTrace(
+  lat: number, lng: number, trace: [number, number][]
+): [number, number] {
+  let best: [number, number] = trace[0];
+  let bestDist = Infinity;
+  for (const [tlat, tlng] of trace) {
+    const d = (tlat - lat) ** 2 + (tlng - lng) ** 2;
+    if (d < bestDist) {
+      bestDist = d;
+      best = [tlat, tlng];
+    }
+  }
+  return best;
+}
 
 function projectPoint(
   lat: number, lng: number,
