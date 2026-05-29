@@ -332,7 +332,7 @@ export default function InscriptionPage() {
         </p>
         
         <a
-          href="https://chat.whatsapp.com/TON_CODE_INVITATION"
+          href="https://chat.whatsapp.com/JFKUmMMa0fcKJYJJ0pGMSK"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 bg-green-600 text-white font-medium px-6 py-3 hover:bg-green-700 transition-colors mb-6"
