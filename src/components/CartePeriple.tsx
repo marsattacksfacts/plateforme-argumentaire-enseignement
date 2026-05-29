@@ -313,22 +313,46 @@ export default function CartePeriple() {
             {/* Toutes les haltes */}
             {HALTES_PRINCIPALES.map((h) => {
               const [px, py] = projectPoint(h.lat, h.lng, minLat, maxLat, minLng, maxLng, dimensions.width, dimensions.height, padding);
-              const isRight = px < dimensions.width * 0.55;
-              const lx = isRight ? px + labelOffset : px - labelOffset;
-              const ta = isRight ? "start" : "end";
+
+              // Trouver l'angle de la tangente au point le plus proche sur le tracé
+              let tangentAngle = 0;
+              if (pathRef.current && pathLength > 0) {
+                // Chercher la distance sur le path correspondant à ce point
+                let closestDist = 0;
+                let closestD2 = Infinity;
+                for (let d = 0; d < pathLength; d += 2) {
+                  const pt = pathRef.current.getPointAtLength(d);
+                  const d2 = (pt.x - px) ** 2 + (pt.y - py) ** 2;
+                  if (d2 < closestD2) {
+                    closestD2 = d2;
+                    closestDist = d;
+                  }
+                }
+                const ptAhead = pathRef.current.getPointAtLength(Math.min(closestDist + 5, pathLength));
+                const ptBehind = pathRef.current.getPointAtLength(Math.max(closestDist - 5, 0));
+                tangentAngle = Math.atan2(ptAhead.y - ptBehind.y, ptAhead.x - ptBehind.x);
+              }
+
+              // Label perpendiculaire à la tangente (décalé vers le haut-droite ou haut-gauche)
+              const perpAngle = tangentAngle + Math.PI / 2; // +90° = au-dessus de la courbe
+              const labelDist = 22;
+              const lx = px + Math.cos(perpAngle) * labelDist;
+              const ly = py - Math.sin(perpAngle) * labelDist; // - car Y est inversé en SVG
+              
+              // Ajuster le text-anchor selon l'angle
+              const normalizedAngle = ((tangentAngle * 180) / Math.PI + 360) % 360;
+              const ta = normalizedAngle > 90 && normalizedAngle < 270 ? "end" : "start";
 
               // Style selon variant
               const isSimple = h.variant === "simple";
               const isNuit = h.variant === "nuit";
               const isArrivee = h.variant === "arrivee";
-              const isEtape = h.variant === "etape";
-              const isDepart = h.variant === "depart";
 
               if (isSimple) {
                 return (
                   <g key={h.label}>
                     <circle cx={px} cy={py} r="3" fill="#1C1917" opacity="0.45" />
-                    <text x={lx} y={py + 4} textAnchor={ta} fill="#6B6459" fontFamily="Space Grotesk, sans-serif" fontSize="8">{h.label}</text>
+                    <text x={lx} y={ly} textAnchor={ta} fill="#6B6459" fontFamily="Space Grotesk, sans-serif" fontSize="8">{h.label}</text>
                   </g>
                 );
               }
@@ -339,13 +363,13 @@ export default function CartePeriple() {
 
               return (
                 <g key={h.label}>
-                  <line x1={px} y1={py} x2={isRight ? px + labelOffset - 5 : px - labelOffset + 5} y2={py - labelOffset * 0.5} stroke="#6B6459" strokeWidth="0.5" strokeDasharray="2 2" opacity="0.4" />
+                  <line x1={px} y1={py} x2={lx} y2={ly} stroke="#6B6459" strokeWidth="0.5" strokeDasharray="2 2" opacity="0.4" />
                   <circle cx={px} cy={py} r={r} fill={fill} stroke={stroke} strokeWidth="2" />
                   {isNuit && <text x={px} y={py + 0.5} textAnchor="middle" fontSize="7" fill="#1C1917" fontWeight="bold">🌙</text>}
-                  {isDepart && <text x={px} y={py + 0.5} textAnchor="middle" fontSize="7" fill="#FBF6ED" fontWeight="bold">D</text>}
+                  {h.variant === "depart" && <text x={px} y={py + 0.5} textAnchor="middle" fontSize="7" fill="#FBF6ED" fontWeight="bold">D</text>}
                   {isArrivee && <text x={px} y={py + 0.5} textAnchor="middle" fontSize="7" fill="#FBF6ED" fontWeight="bold">A</text>}
-                  <text x={lx} y={py - labelOffset * 0.5 + 5} textAnchor={ta} fill="#1C1917" fontFamily="Space Grotesk, sans-serif" fontSize="13" fontWeight="bold">{h.label}</text>
-                  <text x={lx} y={py - labelOffset * 0.5 + 19} textAnchor={ta} fill="#6B6459" fontFamily="Space Grotesk, sans-serif" fontSize="9" letterSpacing="0.05em">{h.type}</text>
+                  <text x={lx} y={ly} textAnchor={ta} fill="#1C1917" fontFamily="Space Grotesk, sans-serif" fontSize="13" fontWeight="bold">{h.label}</text>
+                  <text x={lx} y={ly + 14} textAnchor={ta} fill="#6B6459" fontFamily="Space Grotesk, sans-serif" fontSize="9" letterSpacing="0.05em">{h.type}</text>
                 </g>
               );
             })}
