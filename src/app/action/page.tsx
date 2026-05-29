@@ -16,6 +16,10 @@ interface Halte {
   demi_journee: string | null;
   heure_arrivee: string | null;
   heure_depart: string | null;
+  lieu: string | null;
+  adresse: string | null;
+  notes: string | null;
+  heure_rassemblement: string | null;
 }
 
 interface Troncon {
@@ -181,20 +185,30 @@ export default function ActionPage() {
                     {groupe.trajet} — <strong>{groupe.km} km</strong>
                   </p>
                 </div>
-                {haltesDuGroupe.some(h => h.heure_depart) && (
+                {(groupe.premiere.heure_rassemblement || groupe.premiere.heure_depart) && (
                   <p className="text-xs text-[#6B6459]">
-                    {haltesDuGroupe.find(h => h.heure_depart)?.heure_depart && `Rassemblement ${haltesDuGroupe.find(h => h.heure_depart)?.heure_depart?.replace("h", "h")} ${groupe.premiere.ville}`}
-                    {haltesDuGroupe[0].heure_depart && ` · Départ ${haltesDuGroupe[0].heure_depart}`}
+                    🕐 Rassemblement {groupe.premiere.heure_rassemblement || groupe.premiere.heure_depart} {groupe.premiere.ville}
+                    {groupe.premiere.heure_depart && ` · Départ ${groupe.premiere.heure_depart}`}
                   </p>
                 )}
                 <ul className="text-sm space-y-1">
                   {haltesDuGroupe.map((h, i) => (
-                    <li key={h.id}>
-                      {i + 1}{i === 0 ? "ʳᵉ" : "ᵉ"} halte : {h.ville}
-                      {h.heure_arrivee && `, ${h.heure_arrivee}`}
-                      {h.heure_depart && h.type !== "depart" && ` - ${h.heure_depart}`}
-                      {h.type === "etape_cle" && " (dîner)"}
-                      {h.type === "nuit" && " (nuit)"}
+                    <li key={h.id} className="flex flex-col mb-2">
+                      <span>
+                        {i + 1}{i === 0 ? "ʳᵉ" : "ᵉ"} halte : <strong>{h.ville}</strong>
+                        {h.heure_arrivee && `, ${h.heure_arrivee}`}
+                        {h.heure_depart && h.type !== "depart" && ` - ${h.heure_depart}`}
+                        {h.type === "etape_cle" && " (dîner)"}
+                        {h.type === "nuit" && " (nuit)"}
+                      </span>
+                      {(h.lieu || h.adresse || h.heure_rassemblement || h.notes) && (
+                        <span className="text-xs text-[#6B6459] ml-4 mt-0.5 space-x-2">
+                          {h.heure_rassemblement && <span>🕐 Rassemblement : {h.heure_rassemblement}</span>}
+                          {h.lieu && <span>📍 {h.lieu}</span>}
+                          {h.adresse && <span>· {h.adresse}</span>}
+                          {h.notes && <span className="italic">· {h.notes}</span>}
+                        </span>
+                      )}
                     </li>
                   ))}
                 </ul>

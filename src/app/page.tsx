@@ -16,6 +16,10 @@ interface Halte {
   jour: number;
   heure_arrivee: string | null;
   heure_depart: string | null;
+  lieu: string | null;
+  adresse: string | null;
+  notes: string | null;
+  heure_rassemblement: string | null;
 }
 
 interface Troncon {
@@ -163,42 +167,55 @@ export default function Home() {
                 const isDepart = h.type === "depart";
                 const isArrivee = h.type === "arrivee";
                 const isKey = isNuit || isEtapeCle || isDepart || isArrivee;
+                const hasDetails = h.lieu || h.adresse || h.notes || h.heure_rassemblement;
                 
                 return (
                   <div
                     key={h.id}
-                    className={`p-4 relative ${
-                      isNuit ? "bg-[#E8B43A]/15" : 
-                      isEtapeCle ? "bg-[#C0440E]/20" : 
-                      isDepart ? "bg-[#C0440E]/20" : 
-                      isArrivee ? "bg-[#C0440E]/20" : 
-                      "bg-[#1C1917]"
-                    }`}
+                    className={`p-4 relative group cursor-pointer ${
+                      isNuit ? "bg-[#E8B43A]/15 lg:hover:bg-[#E8B43A]/25" : 
+                      isEtapeCle ? "bg-[#C0440E]/20 lg:hover:bg-[#C0440E]/30" : 
+                      isDepart ? "bg-[#C0440E]/20 lg:hover:bg-[#C0440E]/30" : 
+                      isArrivee ? "bg-[#C0440E]/20 lg:hover:bg-[#C0440E]/30" : 
+                      "bg-[#1C1917] lg:hover:bg-[#2a2420]"
+                    } ${hasDetails ? "lg:hover:ring-2 lg:hover:ring-[#C0440E]/50 lg:hover:shadow-2xl lg:hover:shadow-black/50 lg:hover:z-20" : ""}`}
                   >
-                    <p className={`font-serif text-2xl font-black leading-none mb-1 ${
-                      isKey ? "text-[#C0440E]" : "text-white/15"
-                    }`}>
-                      {String(h.ordre).padStart(2, "0")}
-                    </p>
-                    <p className="font-medium text-sm text-[#F5F0E8]">{h.ville}</p>
-                    <p className={`text-[10px] uppercase tracking-widest mt-0.5 ${
-                      isNuit ? "text-[#E8B43A]" : 
-                      isEtapeCle ? "text-[#C0440E]" : 
-                      isDepart ? "text-[#C0440E] opacity-70" : 
-                      isArrivee ? "text-[#C0440E] opacity-70" : 
-                      "text-[#F5F0E8] opacity-40"
-                    }`}>
-                      {isNuit ? `🌙 Nuit J${h.jour}` : 
-                      isEtapeCle ? `🍽️ Étape clé` : 
-                      isDepart ? "Départ" : 
-                      isArrivee ? "Arrivée" : 
-                      TYPE_LABELS[h.type] || h.type}
-                    </p>
-                    {isNuit && (
-                      <span className="absolute top-2 right-2 text-xs">🌙</span>
-                    )}
-                    {isEtapeCle && (
-                      <span className="absolute top-2 right-2 text-xs">🍽️</span>
+                    {/* Contenu normal */}
+                    <div>
+                      <p className={`font-serif text-2xl font-black leading-none mb-1 ${
+                        isKey ? "text-[#C0440E]" : "text-white/15"
+                      }`}>
+                        {String(h.ordre).padStart(2, "0")}
+                      </p>
+                      <p className="font-medium text-sm text-[#F5F0E8]">{h.ville}</p>
+                      <p className={`text-[10px] uppercase tracking-widest mt-0.5 ${
+                        isNuit ? "text-[#E8B43A]" : 
+                        isEtapeCle ? "text-[#C0440E]" : 
+                        isDepart ? "text-[#C0440E] opacity-70" : 
+                        isArrivee ? "text-[#C0440E] opacity-70" : 
+                        "text-[#F5F0E8] opacity-40"
+                      }`}>
+                        {isNuit ? `🌙 Nuit J${h.jour}` : 
+                        isEtapeCle ? `🍽️ Étape clé` : 
+                        isDepart ? "Départ" : 
+                        isArrivee ? "Arrivée" : 
+                        TYPE_LABELS[h.type] || h.type}
+                      </p>
+                      {isNuit && <span className="absolute top-2 right-2 text-xs">🌙</span>}
+                      {isEtapeCle && <span className="absolute top-2 right-2 text-xs">🍽️</span>}
+                    </div>
+                    
+                    {/* Détails en absolute — ne change pas la hauteur de la carte */}
+                    {hasDetails && (
+                      <div className="hidden group-hover:block absolute left-0 right-0 top-full mt-1 bg-[#1C1917] border border-white/10 p-3 shadow-2xl z-30 text-[#F5F0E8] text-xs space-y-1">
+                        <p className="font-bold text-sm mb-1">{h.ville}</p>
+                        {h.lieu && <p>📍 {h.lieu}</p>}
+                        {h.adresse && <p>📫 {h.adresse}</p>}
+                        {h.heure_rassemblement && <p>🕐 Rassemblement : {h.heure_rassemblement}</p>}
+                        {h.heure_arrivee && <p>🚴 Arrivée cyclistes : {h.heure_arrivee}</p>}
+                        {h.heure_depart && <p>🏁 Départ : {h.heure_depart}</p>}
+                        {h.notes && <p className="italic opacity-70">{h.notes}</p>}
+                      </div>
                     )}
                   </div>
                 );

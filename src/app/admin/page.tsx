@@ -154,6 +154,10 @@ interface Halte {
   heure_arrivee: string | null;
   heure_depart: string | null;
   demi_journee: string;
+  lieu: string | null;
+  adresse: string | null;
+  notes: string | null;
+  heure_rassemblement: string | null;
 }
 
 interface Troncon {
@@ -342,11 +346,13 @@ export default function AdminDashboard() {
       const original = haltes.find(o => o.id === h.id);
       if (JSON.stringify(h) !== JSON.stringify(original)) {
         await supabase.from("haltes").update({
-          ville: h.ville,
-          type: h.type,
-          jour: h.jour,
+          ville: h.ville, type: h.type, jour: h.jour,
           heure_arrivee: h.heure_arrivee || null,
           heure_depart: h.heure_depart || null,
+          lieu: h.lieu || null,
+          adresse: h.adresse || null,
+          notes: h.notes || null,
+          heure_rassemblement: h.heure_rassemblement || null,
         }).eq("id", h.id);
       }
     }
@@ -619,6 +625,10 @@ export default function AdminDashboard() {
                       <th className="p-2">Jour</th>
                       <th className="p-2">Arrivée</th>
                       <th className="p-2">Départ</th>
+                      <th className="p-2">Lieu</th>
+                      <th className="p-2">Adresse</th>
+                      <th className="p-2">Rass.</th>
+                      <th className="p-2">Notes</th>
                     </tr></thead>
                     <tbody>
                       {(editMode ? editedHaltes : haltes).map(h => (
@@ -661,6 +671,34 @@ export default function AdminDashboard() {
                               <input type="time" value={h.heure_depart || ""} onChange={e => updateHalte(h.id, "heure_depart", e.target.value)} className="w-full border border-black/15 px-2 py-1 text-xs bg-white" />
                             ) : (
                               <span>{h.heure_depart || "—"}</span>
+                            )}
+                          </td>
+                          <td className="p-2">
+                            {editMode ? (
+                              <input type="text" value={h.lieu || ""} onChange={e => updateHalte(h.id, "lieu", e.target.value)} className="w-full border border-black/15 px-1 py-0.5 text-xs bg-white" />
+                            ) : (
+                              <span className="text-[10px]">{h.lieu || "—"}</span>
+                            )}
+                          </td>
+                          <td className="p-2">
+                            {editMode ? (
+                              <input type="text" value={h.adresse || ""} onChange={e => updateHalte(h.id, "adresse", e.target.value)} className="w-full border border-black/15 px-1 py-0.5 text-xs bg-white" />
+                            ) : (
+                              <span className="text-[10px]">{h.adresse || "—"}</span>
+                            )}
+                          </td>
+                          <td className="p-2">
+                            {editMode ? (
+                              <input type="time" value={h.heure_rassemblement || ""} onChange={e => updateHalte(h.id, "heure_rassemblement", e.target.value)} className="w-full border border-black/15 px-1 py-0.5 text-xs bg-white" />
+                            ) : (
+                              <span className="text-[10px]">{h.heure_rassemblement || "—"}</span>
+                            )}
+                          </td>
+                          <td className="p-2">
+                            {editMode ? (
+                              <input type="text" value={h.notes || ""} onChange={e => updateHalte(h.id, "notes", e.target.value)} className="w-full border border-black/15 px-1 py-0.5 text-xs bg-white" />
+                            ) : (
+                              <span className="text-[10px] max-w-[100px] truncate">{h.notes || "—"}</span>
                             )}
                           </td>
                         </tr>
