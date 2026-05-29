@@ -190,7 +190,7 @@ export default function HebergementPage() {
       {/* NAV */}
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-[#F5F0E8]/90 backdrop-blur border-b border-black/10">
         <Link href="/" className="hover:opacity-80 transition-opacity">
-          <p className="font-serif font-bold text-[#C0440E] text-sm leading-tight">Facteurs à bicyclette</p>
+          <p className="font-serif font-bold text-[#C0440E] text-sm leading-tight">Facteur·ices à bicyclette</p>
           <p className="text-xs text-[#6B6459] italic">Périple épiscolaire · 2026</p>
         </Link>
         <button onClick={logout} className="text-xs text-[#6B6459] underline hover:text-[#C0440E]">Déconnexion</button>

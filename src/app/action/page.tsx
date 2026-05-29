@@ -91,7 +91,7 @@ export default function ActionPage() {
       {/* NAV */}
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-[#F5F0E8]/90 backdrop-blur border-b border-black/10">
         <Link href="/" className="hover:opacity-80 transition-opacity">
-          <p className="font-serif font-bold text-[#C0440E] text-sm leading-tight">Facteurs à bicyclette</p>
+          <p className="font-serif font-bold text-[#C0440E] text-sm leading-tight">Facteur·ices à bicyclette</p>
           <p className="text-xs text-[#6B6459] italic">Périple épiscolaire · 2026</p>
         </Link>
         <Link href="/inscription" className="bg-[#C0440E] text-white text-sm font-medium px-4 py-2 hover:bg-[#8A2E06] transition-colors">
@@ -103,7 +103,7 @@ export default function ActionPage() {
       <section className="pt-28 pb-20 px-4 md:px-8 max-w-3xl mx-auto">
 
         <span className="inline-block text-[10px] font-medium tracking-widest uppercase text-[#C0440E] border border-[#C0440E] px-3 py-1 mb-8">Le mouvement</span>
-        <h1 className="font-serif text-4xl md:text-5xl font-black leading-[1.1] mb-4">Les facteurs à bicyclette</h1>
+        <h1 className="font-serif text-4xl md:text-5xl font-black leading-[1.1] mb-4">Les Facteur·ices à bicyclette</h1>
         <p className="font-serif italic text-lg text-[#6B6459] mb-12">Un périple épiscolaire</p>
 
         {/* Notre histoire */}
@@ -288,7 +288,7 @@ export default function ActionPage() {
       {/* FOOTER */}
       <footer className="bg-[#1C1917] border-t border-white/10 px-4 md:px-8 py-6 text-xs text-[#F5F0E8]/50">
         <div className="max-w-5xl mx-auto flex flex-wrap justify-between gap-3">
-          <p><strong className="text-[#F5F0E8]/80">Facteurs à bicyclette</strong> — Périple épiscolaire 2026<br />Initiative indépendante · Collectif de Coordination Liège-Régional</p>
+          <p><strong className="text-[#F5F0E8]/80">Facteur·ices à bicyclette</strong> — Périple épiscolaire 2026<br />Initiative indépendante · Collectif de Coordination Liège-Régional</p>
           <p className="text-right">
             <Link href="/code-ethique" className="underline hover:text-[#F5F0E8]/80 transition-colors">Code éthique</Link> · <Link href="/confidentialite" className="underline hover:text-[#F5F0E8]/80 transition-colors">Politique de confidentialité</Link><br />
             <Link href="/admin/login" className="text-[#F5F0E8]/30 hover:text-[#F5F0E8]/50 transition-colors">Admin</Link>

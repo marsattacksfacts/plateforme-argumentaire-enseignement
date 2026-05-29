@@ -70,7 +70,7 @@ export default function Home() {
       {/* NAV */}
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-[#F5F0E8]/90 backdrop-blur border-b border-black/10">
         <div>
-          <p className="font-serif font-bold text-[#C0440E] text-sm leading-tight">Facteurs à bicyclette</p>
+          <p className="font-serif font-bold text-[#C0440E] text-sm leading-tight">Facteur·ices à bicyclette</p>
           <p className="text-xs text-[#6B6459] italic">Périple épiscolaire · 2026</p>
         </div>
         <Link
@@ -110,7 +110,7 @@ export default function Home() {
             En 1936, les ouvriers grévistes ont obtenu les congés payés en maintenant la pression sur leurs élus.
           </blockquote>
           <p>
-            En 2026, <strong className="font-medium text-[#1C1917]">d'étranges facteurs à bicyclette</strong> traverseront
+            En 2026, <strong className="font-medium text-[#1C1917]">d'étranges Facteur·ices à bicyclette</strong> traverseront
             la Wallonie jusqu'au Parlement de la FWB, à Bruxelles, pour porter les lettres de centaines — voire de milliers —
             de citoyen·nes en lutte.
           </p>
@@ -267,7 +267,7 @@ export default function Home() {
       {/* FOOTER */}
       <footer className="bg-[#1C1917] border-t border-white/10 px-4 md:px-8 py-6 text-xs text-[#F5F0E8]/50">
         <div className="max-w-5xl mx-auto flex flex-wrap justify-between gap-3">
-          <p><strong className="text-[#F5F0E8]/80">Facteurs à bicyclette</strong> — Périple épiscolaire 2026<br />Initiative indépendante · Collectif de Coordination Liège-Régional</p>
+          <p><strong className="text-[#F5F0E8]/80">Facteur·ices à bicyclette</strong> — Périple épiscolaire 2026<br />Initiative indépendante · Collectif de Coordination Liège-Régional</p>
           <p className="text-right">
             <Link href="/code-ethique" className="underline hover:text-[#F5F0E8]/80 transition-colors">Code éthique</Link> · <Link href="/confidentialite" className="underline hover:text-[#F5F0E8]/80 transition-colors">Politique de confidentialité</Link><br />
             <Link href="/admin/login" className="text-[#F5F0E8]/30 hover:text-[#F5F0E8]/50 transition-colors">Admin</Link> · <Link href="/hebergement/login" className="text-[#F5F0E8]/30 hover:text-[#F5F0E8]/50 transition-colors">Hébergement</Link>

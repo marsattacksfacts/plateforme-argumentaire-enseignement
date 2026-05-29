@@ -36,7 +36,7 @@ export default function AdminLoginPage() {
   return (
     <main className="min-h-screen bg-[#F5F0E8] flex items-center justify-center px-4">
       <div className="max-w-sm w-full">
-        <h1 className="font-serif text-2xl font-bold mb-6 text-center">Admin · Facteurs à bicyclette</h1>
+        <h1 className="font-serif text-2xl font-bold mb-6 text-center">Admin · Facteur·ices à bicyclette</h1>
         <div className="space-y-4">
           <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" className="w-full border border-black/15 bg-white px-4 py-3 text-sm" />
           <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Mot de passe" className="w-full border border-black/15 bg-white px-4 py-3 text-sm" />

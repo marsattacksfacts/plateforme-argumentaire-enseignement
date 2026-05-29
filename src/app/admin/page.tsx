@@ -426,7 +426,7 @@ export default function AdminDashboard() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="font-serif text-2xl font-bold text-[#1C1917]">Admin · Facteurs à bicyclette</h1>
+            <h1 className="font-serif text-2xl font-bold text-[#1C1917]">Admin · Facteur·ices à bicyclette</h1>
             <p className="text-xs text-[#6B6459]">{stats.total} inscriptions</p>
           </div>
           <button onClick={logout} className="text-xs text-[#6B6459] underline hover:text-[#C0440E]">Déconnexion</button>

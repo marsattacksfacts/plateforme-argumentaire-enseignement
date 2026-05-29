@@ -354,7 +354,7 @@ export default function InscriptionPage() {
         <Link href="/" className="text-sm text-[#6B6459] hover:text-[#1C1917] transition-colors">
           ← Accueil
         </Link>
-        <p className="font-serif font-bold text-[#C0440E] text-sm">Facteurs à bicyclette</p>
+        <p className="font-serif font-bold text-[#C0440E] text-sm">Facteur·ices à bicyclette</p>
       </nav>
 
       <div className="max-w-lg mx-auto pt-10">
@@ -547,7 +547,7 @@ export default function InscriptionPage() {
               <p>Les cyclistes sont eux-mêmes en charge de leur matériel, de leur équipement de réparation et anticipent la nécessité de s'hydrater, s'alimenter durant le déplacement.</p>
               <p>Après leur participation au déplacement, les cyclistes sont responsables de rejoindre, individuellement ou non, leur point de départ par le moyen qu'ils souhaitent (voiture, train…), ils veilleront, dans ce cadre, à se conformer à l'ordre public.</p>
               <p>Pour les deux nuits à Huy et à Gembloux, nous tentons de faire correspondre des propositions d'hébergement avec des demandes. Nous ne sommes pas une agence de voyage : votre responsabilité reste pleine et entière, que vous soyez hébergeur ou hébergé.</p>
-              <p>Les lettres collectées et remises au Parlement de la Fédération Wallonie-Bruxelles s'inscrivent dans le cadre d'un dialogue démocratique. Quoique véhiculées par les facteurs à bicyclette, elles restent une émanation de leur signataire (individu ou organisation). En aucun cas l'organisation ne pourra se montrer solidaire de messages injurieux, intimidants ou de toute forme de harcèlement.</p>
+              <p>Les lettres collectées et remises au Parlement de la Fédération Wallonie-Bruxelles s'inscrivent dans le cadre d'un dialogue démocratique. Quoique véhiculées par les Facteur·ices à bicyclette, elles restent une émanation de leur signataire (individu ou organisation). En aucun cas l'organisation ne pourra se montrer solidaire de messages injurieux, intimidants ou de toute forme de harcèlement.</p>
               <p className="text-xs text-[#6B6459] italic mt-2">
                 <Link href="/code-ethique" target="_blank" className="underline hover:text-[#C0440E]">Lire le code éthique complet dans une nouvelle page →</Link>
               </p>

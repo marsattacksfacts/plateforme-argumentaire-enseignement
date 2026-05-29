@@ -7,7 +7,7 @@ export default function CodeEthiquePage() {
       {/* NAV */}
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-[#F5F0E8]/90 backdrop-blur border-b border-black/10">
         <Link href="/" className="hover:opacity-80 transition-opacity">
-          <p className="font-serif font-bold text-[#C0440E] text-sm leading-tight">Facteurs à bicyclette</p>
+          <p className="font-serif font-bold text-[#C0440E] text-sm leading-tight">Facteur·ices à bicyclette</p>
           <p className="text-xs text-[#6B6459] italic">Périple épiscolaire · 2026</p>
         </Link>
         <Link
@@ -58,7 +58,7 @@ export default function CodeEthiquePage() {
           </p>
 
           <p>
-            Les lettres collectées et remises au Parlement de la Fédération Wallonie-Bruxelles s'inscrivent dans le cadre d'un dialogue démocratique. Quoique véhiculées par les facteurs à bicyclette, elles restent une émanation de leur signataire (individu ou organisation). En aucun cas l'organisation ne pourra se montrer solidaire de messages injurieux, intimidants ou de toute forme de harcèlement.
+            Les lettres collectées et remises au Parlement de la Fédération Wallonie-Bruxelles s'inscrivent dans le cadre d'un dialogue démocratique. Quoique véhiculées par les Facteur·ices à bicyclette, elles restent une émanation de leur signataire (individu ou organisation). En aucun cas l'organisation ne pourra se montrer solidaire de messages injurieux, intimidants ou de toute forme de harcèlement.
           </p>
         </div>
 
@@ -75,7 +75,7 @@ export default function CodeEthiquePage() {
       {/* FOOTER */}
       <footer className="bg-[#1C1917] border-t border-white/10 px-6 py-6 text-xs text-[#F5F0E8]/50">
         <div className="max-w-3xl mx-auto flex flex-wrap justify-between gap-3">
-          <p><strong className="text-[#F5F0E8]/80">Facteurs à bicyclette</strong> — Périple épiscolaire 2026<br />Initiative indépendante · Collectif de Coordination Liège-Régional</p>
+          <p><strong className="text-[#F5F0E8]/80">Facteur·ices à bicyclette</strong> — Périple épiscolaire 2026<br />Initiative indépendante · Collectif de Coordination Liège-Régional</p>
           <p className="text-right">Code source public · Données confidentielles<br />
             <Link href="/code-ethique" className="underline hover:text-[#F5F0E8]/80 transition-colors">Code éthique</Link> · <Link href="/confidentialite" className="underline hover:text-[#F5F0E8]/80 transition-colors">Politique de confidentialité</Link>
           </p>
