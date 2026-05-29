@@ -468,6 +468,21 @@ export default function AdminDashboard() {
               <button onClick={mailtoAll} className="border border-[#C0440E] text-[#C0440E] px-4 py-2 text-sm font-medium hover:bg-[#C0440E]/5 transition-colors">
                 📧 Mailto all ({filtered.length})
               </button>
+              <button
+                onClick={() => {
+                  const tels = filtered
+                    .map(i => i.telephone)
+                    .filter(Boolean)
+                    .map(t => t.replace(/[^0-9+]/g, ""));
+                  if (tels.length === 0) return;
+                  navigator.clipboard.writeText(tels.join("\n")).then(() => {
+                    alert(`${tels.length} numéros copiés !\n\nColle-les dans ton groupe WhatsApp.`);
+                  });
+                }}
+                className="border border-green-600 text-green-700 px-4 py-2 text-sm font-medium hover:bg-green-50 transition-colors"
+              >
+                📱 Copier {filtered.filter(i => i.telephone).length} n°
+              </button>
               <button onClick={exportCSV} className="border border-black/20 text-[#1C1917] px-4 py-2 text-sm font-medium hover:border-black/40 transition-colors">
                 📥 Export CSV
               </button>
