@@ -64,7 +64,7 @@ const HALTES_PRINCIPALES_RAW = [
   { label: "Herve", type: "Halte", lat: 50.614, lng: 5.793, variant: "simple" as const },
   { label: "Soumagne", type: "Halte", lat: 50.622, lng: 5.745, variant: "simple" as const },
   { label: "Chênée", type: "Halte", lat: 50.619, lng: 5.621, variant: "simple" as const },
-  { label: "Liège", type: "Étape clé", lat: 50.640309, lng: 5.786100, variant: "etape" as const },
+  { label: "Liège", type: "Étape clé", lat: 50.635361, lng: 5.568411, variant: "etape" as const },
   { label: "Seraing", type: "Halte", lat: 50.603, lng: 5.507, variant: "simple" as const },
   { label: "Huy", type: "Nuit J1", lat: 50.523751, lng: 5.231206, variant: "nuit" as const },
   { label: "Andenne", type: "Halte", lat: 50.498974, lng: 5.120757, variant: "simple" as const },
