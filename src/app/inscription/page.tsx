@@ -336,16 +336,39 @@ export default function InscriptionPage() {
           En attendant, parle-en autour de toi !
         </p>
         
-        <a
-          href="https://chat.whatsapp.com/JFKUmMMa0fcKJYJJ0pGMSK"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 bg-green-600 text-white font-medium px-6 py-3 hover:bg-green-700 transition-colors mb-6"
-        >
-          📱 Rejoindre la communauté WhatsApp
-        </a>
+        <div className="space-y-3 mb-6">
+          {data.roles.includes("cycliste") && (
+            <a
+              href="https://chat.whatsapp.com/D5foL9R5cf2572arVy0Mvz?mode=gi_t"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-green-600 text-white font-medium px-6 py-3 hover:bg-green-700 transition-colors w-full justify-center"
+            >
+              📱 Groupe WhatsApp — Cyclistes
+            </a>
+          )}
+          {(data.roles.includes("accueillant") || data.roles.includes("cycliste")) && (
+            <a
+              href="https://chat.whatsapp.com/CCGOX1A5yWMGuERZHTM6j9?mode=gi_t"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-green-600 text-white font-medium px-6 py-3 hover:bg-green-700 transition-colors w-full justify-center"
+            >
+              📱 Groupe WhatsApp — Hébergeurs & Cyclistes
+            </a>
+          )}
+          {(data.roles.includes("organisateur_halte") || data.roles.includes("coordinateur")) && (
+            <a
+              href="https://chat.whatsapp.com/DYveFLucWBUBU9RSvQ9E4p?mode=gi_t"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-green-600 text-white font-medium px-6 py-3 hover:bg-green-700 transition-colors w-full justify-center"
+            >
+              📱 Groupe WhatsApp — Haltes & Coordination
+            </a>
+          )}
+        </div>
         
-        <br />
         <Link href="/" className="text-sm underline text-[#C0440E] hover:text-[#8A2E06]">
           ← Retour à l&apos;accueil
         </Link>
@@ -430,19 +453,87 @@ export default function InscriptionPage() {
             {data.roles.includes("cycliste") && (
               <div className="space-y-6 border border-black/10 p-4">
                 <h2 className="font-serif text-xl font-bold">🚴 Cycliste</h2>
-                {/* ... tout le bloc cycliste existant ... */}
+                <p className="text-xs text-[#6B6459]">
+                  Coche les tronçons que tu souhaites parcourir.
+                </p>
+
+                <div className="border border-[#C0440E]/30 bg-[#C0440E]/5 p-4">
+                  <CheckCard
+                    checked={data.parcours_velo.includes("3_jours")}
+                    onClick={toggle3Jours}
+                    title="🚴 Je suis un grand malade, je roule les 3 jours !"
+                    subtitle="1er au 3 juin — Verviers → Bruxelles en entier"
+                  />
+                </div>
+
+                {groupesVelo.map(groupe => (
+                  <div key={groupe.date} className="border border-black/10 p-4 space-y-3">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-xs font-bold bg-[#1C1917] text-[#F5F0E8] px-2 py-0.5">{groupe.date}</span>
+                      <span className="font-serif font-bold text-[#1C1917]">{groupe.jour}</span>
+                      <span className="text-xs text-[#6B6459]">— {groupe.trajet}</span>
+                    </div>
+                    {groupe.options.map(opt => (
+                      <div key={opt.value} className={opt.children.length > 0 ? "ml-0" : "ml-5"}>
+                        <CheckCard
+                          checked={data.parcours_velo.includes(opt.value)}
+                          onClick={() => toggleParcours(opt.value)}
+                          title={opt.label}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ))}
+
+                {/* Hébergement */}
+                {(() => {
+                  const hasJ1 = data.parcours_velo.some(v => v.startsWith("jour1"));
+                  const hasJ2 = data.parcours_velo.some(v => v.startsWith("jour2"));
+                  const hasJ3 = data.parcours_velo.some(v => v.startsWith("jour3"));
+                  const chevauche = (hasJ1 && hasJ2) || (hasJ2 && hasJ3) || data.parcours_velo.includes("3_jours");
+                  if (!chevauche) return null;
+                  return (
+                    <div className="mt-6 space-y-3">
+                      <SectionTitle>🏠 Hébergement</SectionTitle>
+                      <p className="text-xs text-[#6B6459]">Comme tu roules sur plusieurs jours, as-tu besoin d&apos;un hébergement ?</p>
+                      <RadioCard checked={data.besoin_hebergement === "non"} onClick={() => set("besoin_hebergement", "non")} title="Non merci, je me débrouille" />
+                      {hasJ1 && hasJ2 && <RadioCard checked={data.besoin_hebergement === "nuit_1"} onClick={() => set("besoin_hebergement", "nuit_1")} title="Oui — nuit du 1er au 2 juin (région Huy)" />}
+                      {hasJ2 && hasJ3 && <RadioCard checked={data.besoin_hebergement === "nuit_2"} onClick={() => set("besoin_hebergement", "nuit_2")} title="Oui — nuit du 2 au 3 juin (région Gembloux)" />}
+                      {hasJ1 && hasJ2 && hasJ3 && <RadioCard checked={data.besoin_hebergement === "nuit_12"} onClick={() => set("besoin_hebergement", "nuit_12")} title="Oui — les deux nuits" />}
+                    </div>
+                  );
+                })()}
               </div>
             )}
+
             {data.roles.includes("organisateur_halte") && (
               <div className="space-y-6 border border-black/10 p-4">
                 <h2 className="font-serif text-xl font-bold">🏫 Organiser une halte</h2>
-                {/* ... tout le bloc halte existant ... */}
+                <Input label="Dans quelle ville se situe ta halte ?" value={data.halte_ville} onChange={v => set("halte_ville", v)} placeholder="Ex: Liège, Huy..." />
+                <Label>Proposition d&apos;activité conviviale (concert, mini-bar, etc.) :</Label>
+                <Textarea value={data.halte_animation} onChange={v => set("halte_animation", v)} placeholder="Décris-nous tes idées folles..." />
+                <Label>Es-tu disponible pour collecter les lettres des voisins/enfants avant la halte ? *</Label>
+                <div className="flex gap-4">
+                  <button onClick={() => set("halte_collecte_lettres", true)} className={`flex-1 py-3 border text-sm font-medium ${data.halte_collecte_lettres === true ? "border-[#C0440E] bg-[#C0440E]/5" : "border-black/10"}`}>Oui, je récolte !</button>
+                  <button onClick={() => set("halte_collecte_lettres", false)} className={`flex-1 py-3 border text-sm font-medium ${data.halte_collecte_lettres === false ? "border-[#C0440E] bg-[#C0440E]/5" : "border-black/10"}`}>Non, mais je tiens la halte</button>
+                </div>
               </div>
             )}
+
             {data.roles.includes("accueillant") && (
               <div className="space-y-6 border border-black/10 p-4">
                 <h2 className="font-serif text-xl font-bold">🏠 Accueillir des cyclistes</h2>
-                {/* ... tout le bloc accueillant existant ... */}
+                <Label>Dans quelle ville loges-tu ?</Label>
+                <div className="flex gap-4">
+                  <button onClick={() => set("accueil_ville", "huy")} className={`flex-1 py-3 border text-sm font-medium ${data.accueil_ville === "huy" ? "border-[#C0440E] bg-[#C0440E]/5" : "border-black/10"}`}>Huy</button>
+                  <button onClick={() => set("accueil_ville", "gembloux")} className={`flex-1 py-3 border text-sm font-medium ${data.accueil_ville === "gembloux" ? "border-[#C0440E] bg-[#C0440E]/5" : "border-black/10"}`}>Gembloux</button>
+                </div>
+                <Input label="Combien de personnes peux-tu accueillir ?" type="number" value={data.accueil_nb_personnes} onChange={v => set("accueil_nb_personnes", v)} />
+                <Label>Type d&apos;hébergement :</Label>
+                <div className="flex gap-4">
+                  <button onClick={() => set("accueil_type", "jardin")} className={`flex-1 py-3 border text-sm font-medium ${data.accueil_type === "jardin" ? "border-[#C0440E] bg-[#C0440E]/5" : "border-black/10"}`}>Dans le jardin (tente)</button>
+                  <button onClick={() => set("accueil_type", "chambres")} className={`flex-1 py-3 border text-sm font-medium ${data.accueil_type === "chambres" ? "border-[#C0440E] bg-[#C0440E]/5" : "border-black/10"}`}>Dans une/des chambre(s)</button>
+                </div>
               </div>
             )}
           </div>
