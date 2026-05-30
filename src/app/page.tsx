@@ -138,6 +138,9 @@ export default function Home() {
             Voir le parcours
           </a>
         </div>
+        <Link href="/faq" className="border border-black/20 text-[#1C1917] font-medium px-7 py-3 hover:border-black/50 transition-colors">
+          ❓ FAQ
+        </Link>
       </section>
 
       {/* CARTE ANIMÉE */}
