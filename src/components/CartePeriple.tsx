@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
-// ── TRACÉS GPX ─────────────────────────────────────────────────────────────
+const supabase = createClient();
+
+// ── TRACÉS GPX (inchangés) ────────────────────────────────────────────────
 
 const TRACE_J1: [number, number][] = [
   [50.592580, 5.861104], [50.595435, 5.852475], [50.597115, 5.843460],
@@ -57,7 +60,6 @@ const TRACE_J3: [number, number][] = [
 const TRACE: [number, number][] = [...TRACE_J1, ...TRACE_J2, ...TRACE_J3];
 
 // ── HALTES ─────────────────────────────────────────────────────────────────
-// Points extraits directement du GPX (coordonnées réelles)
 
 const HALTES_PRINCIPALES_RAW = [
   { label: "Verviers", type: "Départ", lat: 50.592580, lng: 5.861104, variant: "depart" as const },
@@ -80,47 +82,29 @@ const HALTES_PRINCIPALES_RAW = [
   { label: "Bruxelles", type: "Arrivée", lat: 50.845200, lng: 4.370142, variant: "arrivee" as const },
 ];
 
-// Recaler les haltes sur le tracé GPX
+function findClosestPointOnTrace(lat: number, lng: number, trace: [number, number][]): [number, number] {
+  let best: [number, number] = trace[0];
+  let bestDist = Infinity;
+  for (const [tlat, tlng] of trace) {
+    const d = (tlat - lat) ** 2 + (tlng - lng) ** 2;
+    if (d < bestDist) { bestDist = d; best = [tlat, tlng]; }
+  }
+  return best;
+}
+
 const HALTES_PRINCIPALES = HALTES_PRINCIPALES_RAW.map(h => {
   const [lat, lng] = findClosestPointOnTrace(h.lat, h.lng, TRACE);
   return { ...h, lat, lng };
 });
 
-// Plus de HALTES_SIMPLES séparées : tout est dans HALTES_PRINCIPALES
-
-// ── CONFIG CARTE ───────────────────────────────────────────────────────────
+// ── CONFIG ─────────────────────────────────────────────────────────────────
 
 const CARTE_CONFIG = {
-  opacity: 0.01,
-  offsetX: -300,
-  offsetY: 100,
-  scale: 3,
+  opacity: 0.01, offsetX: -300, offsetY: 100, scale: 3,
   src: "/carte_belgique.png",
 };
 
-// ── HELPERS ─────────────────────────────────────────────────────────────────
-
-function findClosestPointOnTrace(
-  lat: number, lng: number, trace: [number, number][]
-): [number, number] {
-  let best: [number, number] = trace[0];
-  let bestDist = Infinity;
-  for (const [tlat, tlng] of trace) {
-    const d = (tlat - lat) ** 2 + (tlng - lng) ** 2;
-    if (d < bestDist) {
-      bestDist = d;
-      best = [tlat, tlng];
-    }
-  }
-  return best;
-}
-
-function projectPoint(
-  lat: number, lng: number,
-  minLat: number, maxLat: number,
-  minLng: number, maxLng: number,
-  width: number, height: number, padding: number
-): [number, number] {
+function projectPoint(lat: number, lng: number, minLat: number, maxLat: number, minLng: number, maxLng: number, width: number, height: number, padding: number): [number, number] {
   const x = padding + ((lng - minLng) / (maxLng - minLng)) * (width - 2 * padding);
   const y = height - padding - ((lat - minLat) / (maxLat - minLat)) * (height - 2 * padding);
   return [x, y];
@@ -133,7 +117,7 @@ function lerpAngle(current: number, target: number, factor: number): number {
   return current + diff * factor;
 }
 
-// ── COMPOSANT ───────────────────────────────────────────────────────────────
+// ── COMPOSANT ──────────────────────────────────────────────────────────────
 
 export default function CartePeriple() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -143,6 +127,15 @@ export default function CartePeriple() {
   const [progress, setProgress] = useState(0);
   const angleRef = useRef(0);
   const posRef = useRef<[number, number]>([0, 0]);
+  const pathRef = useRef<SVGPathElement>(null);
+  const [pathLength, setPathLength] = useState(0);
+  const pathLengthRef = useRef(0);
+
+  // Mode live
+  const [isLive, setIsLive] = useState(false);
+  const [livePos, setLivePos] = useState<[number, number] | null>(null);
+  const [liveAngle, setLiveAngle] = useState(0);
+  const liveAngleRef = useRef(0);
 
   const lats = TRACE.map(([lat]) => lat);
   const lngs = TRACE.map(([, lng]) => lng);
@@ -152,24 +145,14 @@ export default function CartePeriple() {
   const maxLng = Math.max(...lngs);
   const padding = dimensions.width < 500 ? 25 : 60;
 
-  const points = TRACE.map(([lat, lng]) =>
-    projectPoint(lat, lng, minLat, maxLat, minLng, maxLng, dimensions.width, dimensions.height, padding)
-  );
-
+  const points = TRACE.map(([lat, lng]) => projectPoint(lat, lng, minLat, maxLat, minLng, maxLng, dimensions.width, dimensions.height, padding));
   const pathD = points.reduce((d, [x, y], i) => {
     if (i === 0) return `M ${x} ${y}`;
     const [px, py] = points[i - 1];
-    const cpx1 = px + (x - px) * 0.35;
-    const cpy1 = py;
-    const cpx2 = x - (x - px) * 0.35;
-    const cpy2 = y;
-    return `${d} C ${cpx1} ${cpy1}, ${cpx2} ${cpy2}, ${x} ${y}`;
+    return `${d} C ${px + (x - px) * 0.35} ${py}, ${x - (x - px) * 0.35} ${y}, ${x} ${y}`;
   }, "");
 
-  const pathRef = useRef<SVGPathElement>(null);
-  const [pathLength, setPathLength] = useState(0);
-  const pathLengthRef = useRef(0);
-
+  // pathLength
   useEffect(() => {
     if (pathRef.current) {
       const len = pathRef.current.getTotalLength();
@@ -178,52 +161,72 @@ export default function CartePeriple() {
     }
   }, [dimensions]);
 
-  // Animation fluide + linéaire
+  // Animation prévisualisation (avant l'événement)
   useEffect(() => {
-    if (!pathRef.current || pathLength === 0) return;
-
+    if (isLive || !pathRef.current || pathLength === 0) return;
     const duration = 50000;
     const startTime = Date.now();
     let raf: number;
-
     const animate = () => {
       const len = pathLengthRef.current;
-      if (len === 0 || !pathRef.current) {
-        raf = requestAnimationFrame(animate);
-        return;
-      }
-
-      const elapsed = Date.now() - startTime;
-      const t = (elapsed % duration) / duration;
+      if (len === 0 || !pathRef.current) { raf = requestAnimationFrame(animate); return; }
+      const t = ((Date.now() - startTime) % duration) / duration;
       setProgress(t);
-
       const dist = t * len;
       const pt = pathRef.current!.getPointAtLength(dist);
-
-      const [prevX, prevY] = posRef.current;
-      const smoothX = prevX + (pt.x - prevX) * 0.3;
-      const smoothY = prevY + (pt.y - prevY) * 0.3;
-      posRef.current = [smoothX, smoothY];
-      setCurrentPos([smoothX, smoothY]);
-
-      const lookAhead = 10;
-      const ptAhead = pathRef.current!.getPointAtLength(Math.min(dist + lookAhead, len));
-      const rawAngle = Math.atan2(ptAhead.y - pt.y, ptAhead.x - pt.x) * (180 / Math.PI);
-
-      let orientedAngle = rawAngle;
-      if (Math.abs(rawAngle) > 90) {
-        orientedAngle = rawAngle + 180;
-      }
-
-      angleRef.current = lerpAngle(angleRef.current, orientedAngle, 0.2);
+      const [px, py] = posRef.current;
+      posRef.current = [px + (pt.x - px) * 0.3, py + (pt.y - py) * 0.3];
+      setCurrentPos([...posRef.current]);
+      const ahead = pathRef.current!.getPointAtLength(Math.min(dist + 10, len));
+      let ang = Math.atan2(ahead.y - pt.y, ahead.x - pt.x) * (180 / Math.PI);
+      if (Math.abs(ang) > 90) ang += 180;
+      angleRef.current = lerpAngle(angleRef.current, ang, 0.2);
       setCurrentAngle(angleRef.current);
-
       raf = requestAnimationFrame(animate);
     };
-
     raf = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(raf);
-  }, [pathLength]); 
+  }, [pathLength, isLive]);
+
+  // Mode live
+  useEffect(() => {
+    const eventStart = new Date("2026-06-01T06:00:00+02:00").getTime();
+    if (Date.now() < eventStart) return;
+    setIsLive(true);
+
+    const poll = async () => {
+      const { data } = await supabase.from("locations").select("lat, lng, created_at").order("created_at", { ascending: false }).limit(1);
+      if (data?.length) {
+        const age = Date.now() - new Date(data[0].created_at).getTime();
+        if (age < 5 * 60 * 1000) {
+          const [lat, lng] = findClosestPointOnTrace(data[0].lat, data[0].lng, TRACE);
+          setLivePos([lat, lng]);
+          // Calculer l'angle
+          if (pathRef.current && pathLengthRef.current > 0) {
+            const [px, py] = projectPoint(lat, lng, minLat, maxLat, minLng, maxLng, dimensions.width, dimensions.height, padding);
+            let closestD = 0, bestD2 = Infinity;
+            for (let d = 0; d < pathLengthRef.current; d += 5) {
+              const pt = pathRef.current.getPointAtLength(d);
+              const d2 = (pt.x - px) ** 2 + (pt.y - py) ** 2;
+              if (d2 < bestD2) { bestD2 = d2; closestD = d; }
+            }
+            const ahead = pathRef.current.getPointAtLength(Math.min(closestD + 10, pathLengthRef.current));
+            const behind = pathRef.current.getPointAtLength(Math.max(closestD - 10, 0));
+            let ang = Math.atan2(ahead.y - behind.y, ahead.x - behind.x) * (180 / Math.PI);
+            if (Math.abs(ang) > 90) ang += 180;
+            liveAngleRef.current = lerpAngle(liveAngleRef.current, ang, 0.3);
+            setLiveAngle(liveAngleRef.current);
+          }
+          return;
+        }
+      }
+      setLivePos(null); // fallback
+    };
+
+    poll();
+    const interval = setInterval(poll, 15000);
+    return () => clearInterval(interval);
+  }, [dimensions]);
 
   // Resize
   useEffect(() => {
@@ -239,101 +242,55 @@ export default function CartePeriple() {
   }, []);
 
   const labelOffset = 20;
+  const isLiveActive = isLive && livePos;
+  const displayPos: [number, number] = isLiveActive
+    ? projectPoint(livePos![0], livePos![1], minLat, maxLat, minLng, maxLng, dimensions.width, dimensions.height, padding)
+    : currentPos;
+  const displayAngle = isLiveActive ? liveAngle : currentAngle;
+  const liveProgress = isLiveActive ? 1 : progress;
 
   return (
     <div className="bg-[#F5F0E8] px-4 md:px-8 py-12">
       <div className="max-w-5xl mx-auto">
-        <p className="text-[10px] uppercase tracking-widest text-[#C0440E] mb-3">La carte du périple</p>
-        <h2 className="font-serif text-3xl font-bold text-[#1C1917] mb-6">
-          Verviers → Bruxelles en 3 jours
-        </h2>
-
-        <div
-          ref={containerRef}
-          className="relative border-2 border-[#D4C8B8] overflow-hidden"
-          style={{ backgroundColor: "#FBF6ED" }}
-        >
-          {/* Carte ancienne */}
-          <div
-            className="absolute inset-0 pointer-events-none z-0"
-            style={{
-              opacity: CARTE_CONFIG.opacity,
-              transform: `translate(${CARTE_CONFIG.offsetX}px, ${CARTE_CONFIG.offsetY}px) scale(${CARTE_CONFIG.scale})`,
-              transformOrigin: "center center",
-            }}
-          >
-            <img
-              src={CARTE_CONFIG.src}
-              alt=""
-              className="w-full h-full object-cover"
-              style={{ filter: "grayscale(0.3) sepia(0.5)" }}
-            />
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <p className="text-[10px] uppercase tracking-widest text-[#C0440E] mb-3">La carte du périple</p>
+            <h2 className="font-serif text-3xl font-bold text-[#1C1917]">
+              Verviers → Bruxelles en 3 jours
+            </h2>
           </div>
+          {isLive && (
+            <span className={`text-xs font-medium px-3 py-1 border ${isLiveActive ? "border-green-600 text-green-700 bg-green-50" : "border-[#E8B43A] text-[#E8B43A] bg-[#E8B43A]/5"}`}>
+              {isLiveActive ? "🟢 Live" : "🟡 Estimation"}
+            </span>
+          )}
+        </div>
 
-          {/* Texture grain */}
-          <div
-            className="absolute inset-0 pointer-events-none z-[1]"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E")`,
-            }}
-          />
+        <div ref={containerRef} className="relative border-2 border-[#D4C8B8] overflow-hidden" style={{ backgroundColor: "#FBF6ED" }}>
+          {/* Carte ancienne */}
+          <div className="absolute inset-0 pointer-events-none z-0" style={{ opacity: CARTE_CONFIG.opacity, transform: `translate(${CARTE_CONFIG.offsetX}px, ${CARTE_CONFIG.offsetY}px) scale(${CARTE_CONFIG.scale})`, transformOrigin: "center center" }}>
+            <img src={CARTE_CONFIG.src} alt="" className="w-full h-full object-cover" style={{ filter: "grayscale(0.3) sepia(0.5)" }} />
+          </div>
+          {/* Grain */}
+          <div className="absolute inset-0 pointer-events-none z-[1]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E")` }} />
 
-          <svg
-            width={dimensions.width}
-            height={dimensions.height}
-            viewBox={`0 0 ${dimensions.width} ${dimensions.height}`}
-            className="block relative z-10"
-            style={{ backgroundColor: "transparent" }}
-          >
-            {/* Tracé pointillé */}
-            <path
-              ref={pathRef}
-              d={pathD}
-              fill="none"
-              stroke="#C0440E"
-              strokeWidth="2.5"
-              strokeDasharray="8 6"
-              strokeLinecap="round"
-              opacity="0.5"
-            />
-
-            {/* Tracé parcouru */}
+          <svg width={dimensions.width} height={dimensions.height} viewBox={`0 0 ${dimensions.width} ${dimensions.height}`} className="block relative z-10" style={{ backgroundColor: "transparent" }}>
+            <path ref={pathRef} d={pathD} fill="none" stroke="#C0440E" strokeWidth="2.5" strokeDasharray="8 6" strokeLinecap="round" opacity="0.5" />
             {pathLength > 0 && (
-              <path
-                d={pathD}
-                fill="none"
-                stroke="#C0440E"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeDasharray={`${progress * pathLength} ${pathLength}`}
-                opacity="1"
-              />
+              <path d={pathD} fill="none" stroke="#C0440E" strokeWidth="3" strokeLinecap="round" strokeDasharray={`${liveProgress * pathLength} ${pathLength}`} opacity="1" />
             )}
-
-            {/* Toutes les haltes */}
             {HALTES_PRINCIPALES.map((h) => {
               const [px, py] = projectPoint(h.lat, h.lng, minLat, maxLat, minLng, maxLng, dimensions.width, dimensions.height, padding);
               const isRight = px < dimensions.width * 0.55;
               const lx = isRight ? px + labelOffset : px - labelOffset;
               const ta = isRight ? "start" : "end";
-
               const isSimple = h.variant === "simple";
               const isNuit = h.variant === "nuit";
               const isArrivee = h.variant === "arrivee";
-
-              if (isSimple) {
-                return (
-                  <g key={h.label}>
-                    <circle cx={px} cy={py} r="3" fill="#1C1917" opacity="0.45" />
-                    <text x={lx} y={py + 4} textAnchor={ta} fill="#6B6459" fontFamily="Space Grotesk, sans-serif" fontSize="8">{h.label}</text>
-                  </g>
-                );
-              }
-
+              if (isSimple) return <g key={h.label}><circle cx={px} cy={py} r="3" fill="#1C1917" opacity="0.45" /><text x={lx} y={py + 4} textAnchor={ta} fill="#6B6459" fontFamily="Space Grotesk, sans-serif" fontSize="8">{h.label}</text></g>;
               const r = isNuit || isArrivee ? 7 : 5;
               const fill = isNuit ? "#E8B43A" : isArrivee ? "#1C1917" : "#C0440E";
               const stroke = isNuit ? "#1C1917" : "#FBF6ED";
-
               return (
                 <g key={h.label}>
                   <line x1={px} y1={py} x2={isRight ? px + labelOffset - 5 : px - labelOffset + 5} y2={py - labelOffset * 0.5} stroke="#6B6459" strokeWidth="0.5" strokeDasharray="2 2" opacity="0.4" />
@@ -346,46 +303,33 @@ export default function CartePeriple() {
                 </g>
               );
             })}
-
-            {/* Vélo */}
-            {currentPos[0] > 0 && currentPos[1] > 0 && (
-              <g transform={`translate(${currentPos[0]}, ${currentPos[1]}) rotate(${currentAngle})`}>
+            {displayPos[0] > 0 && displayPos[1] > 0 && (
+              <g transform={`translate(${displayPos[0]}, ${displayPos[1]}) rotate(${displayAngle})`}>
                 <ellipse cx="2" cy="14" rx="16" ry="4" fill="rgba(0,0,0,0.1)" />
                 <g transform="scale(0.9)">
-                  {/* Roues */}
-                  <circle cx="-14" cy="0" r="11" fill="none" stroke="#1C1917" strokeWidth="1.5" />
-                  <circle cx="-14" cy="0" r="2" fill="#1C1917" />
-                  <circle cx="14" cy="0" r="11" fill="none" stroke="#1C1917" strokeWidth="1.5" />
-                  <circle cx="14" cy="0" r="2" fill="#1C1917" />
-                  {/* Cadre */}
+                  <circle cx="-14" cy="0" r="11" fill="none" stroke="#1C1917" strokeWidth="1.5" /><circle cx="-14" cy="0" r="2" fill="#1C1917" />
+                  <circle cx="14" cy="0" r="11" fill="none" stroke="#1C1917" strokeWidth="1.5" /><circle cx="14" cy="0" r="2" fill="#1C1917" />
                   <line x1="-14" y1="0" x2="0" y2="-10" stroke="#C0440E" strokeWidth="2.5" />
                   <line x1="0" y1="-10" x2="14" y2="0" stroke="#C0440E" strokeWidth="2.5" />
                   <line x1="-14" y1="0" x2="0" y2="0" stroke="#C0440E" strokeWidth="2.5" />
                   <line x1="0" y1="0" x2="0" y2="-10" stroke="#C0440E" strokeWidth="2.5" />
-                  {/* Guidon */}
                   <line x1="14" y1="0" x2="17" y2="-8" stroke="#1C1917" strokeWidth="2" />
                   <line x1="13" y1="-8" x2="21" y2="-8" stroke="#1C1917" strokeWidth="2" strokeLinecap="round" />
-                  {/* Selle */}
                   <line x1="-5" y1="-10" x2="5" y2="-10" stroke="#1C1917" strokeWidth="3" strokeLinecap="round" />
-                  {/* Pédalier */}
                   <circle cx="0" cy="0" r="4" fill="#1C1917" />
-                  {/* Facteur */}
-                  <circle cx="0" cy="-15" r="5" fill="#C0440E" />
+                  <circle cx="0" cy="-15" r="5" fill={isLiveActive ? "#22c55e" : "#C0440E"} />
                   <line x1="0" y1="-10" x2="0" y2="-15" stroke="#1C1917" strokeWidth="2.5" />
-                  {/* Casquette */}
                   <ellipse cx="0" cy="-20" rx="7" ry="2.5" fill="#1C1917" />
-                  {/* Sacoche */}
-                  <rect x="3" y="-18" width="10" height="7" rx="1.5" fill="#C0440E" opacity="0.85" />
+                  <rect x="3" y="-18" width="10" height="7" rx="1.5" fill={isLiveActive ? "#22c55e" : "#C0440E"} opacity="0.85" />
                 </g>
               </g>
             )}
           </svg>
 
-          {/* Légende */}
           <div className="absolute bottom-3 left-3 flex flex-wrap items-center gap-4 text-[10px] font-medium text-[#6B6459] bg-[#FBF6ED]/90 px-3 py-1.5 z-20">
-            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-[#C0440E] border border-[#FBF6ED] inline-block"></span> Étape clé</span>
-            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-[#E8B43A] border border-[#1C1917] inline-block"></span> Nuit</span>
-            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#1C1917] opacity-50 inline-block"></span> Halte</span>
+            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-[#C0440E] border border-[#FBF6ED] inline-block" /> Étape clé</span>
+            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-[#E8B43A] border border-[#1C1917] inline-block" /> Nuit</span>
+            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#1C1917] opacity-50 inline-block" /> Halte</span>
           </div>
         </div>
       </div>
