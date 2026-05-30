@@ -143,6 +143,33 @@ export default function Home() {
       {/* CARTE ANIMÉE */}
       <CartePeriple />
 
+      {/* Téléchargement des traces GPX */}
+      <div className="bg-[#F5F0E8] px-4 md:px-8 pb-8">
+        <div className="max-w-5xl mx-auto flex flex-wrap gap-3">
+          <a
+            href="/traces/jour1.gpx"
+            download
+            className="border border-[#C0440E] text-[#C0440E] font-medium px-5 py-2.5 text-sm hover:bg-[#C0440E]/5 transition-colors inline-flex items-center gap-2"
+          >
+            🗺️ Télécharger la trace — Jour 1
+          </a>
+          <a
+            href="/traces/jour2.gpx"
+            download
+            className="border border-[#C0440E] text-[#C0440E] font-medium px-5 py-2.5 text-sm hover:bg-[#C0440E]/5 transition-colors inline-flex items-center gap-2"
+          >
+            🗺️ Télécharger la trace — Jour 2
+          </a>
+          <a
+            href="/traces/jour3.gpx"
+            download
+            className="border border-[#C0440E] text-[#C0440E] font-medium px-5 py-2.5 text-sm hover:bg-[#C0440E]/5 transition-colors inline-flex items-center gap-2"
+          >
+            🗺️ Télécharger la trace — Jour 3
+          </a>
+        </div>
+      </div>
+
       {/* PARCOURS */}
       <section id="parcours" className="bg-[#1C1917] text-[#F5F0E8] px-4 md:px-8 py-16">
         <div className="max-w-5xl mx-auto">
