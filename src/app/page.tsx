@@ -106,41 +106,55 @@ export default function Home() {
           <span className="font-serif text-2xl font-black text-[#C0440E]">{nbInscrits} <span className="text-xs font-sans font-medium uppercase tracking-widest text-[#6B6459]">inscrits</span></span>
         </div>
 
-        <div className="space-y-4 text-[0.9rem] md:text-[0.95rem] leading-relaxed text-[#3D3530] mb-10 max-w-2xl">
-          <blockquote className="border-l-4 border-[#C0440E] pl-5 font-serif italic text-base md:text-lg text-[#1C1917] leading-snug">
-            En 1936, les ouvriers grévistes ont obtenu les congés payés en maintenant la pression sur leurs élus.
-          </blockquote>
-          <p>
-            En 2026, <strong className="font-medium text-[#1C1917]">d'étranges Facteur·ices à bicyclette</strong> traverseront
-            la Wallonie jusqu'au Parlement de la FWB, à Bruxelles, pour porter les lettres de centaines — voire de milliers —
-            de citoyen·nes en lutte.
-          </p>
-          <p>
-            De proche en proche, d'école en école, nous collecterons des lettres manuscrites pour les déposer en personne
-            là où les décisions se prennent. Parce que certains messages méritent d'être portés à la force des jambes.
-          </p>
+        {/* Grille desktop : texte à gauche (2/3), vidéo à droite (1/3) */}
+        <div className="md:grid md:grid-cols-3 md:gap-8 mb-10">
+          <div className="md:col-span-2 space-y-4 text-[0.9rem] md:text-[0.95rem] leading-relaxed text-[#3D3530]">
+            <blockquote className="border-l-4 border-[#C0440E] pl-5 font-serif italic text-base md:text-lg text-[#1C1917] leading-snug">
+              En 1936, les ouvriers grévistes ont obtenu les congés payés en maintenant la pression sur leurs élus.
+            </blockquote>
+            <p>
+              En 2026, <strong className="font-medium text-[#1C1917]">d'étranges Facteur·ices à bicyclette</strong> traverseront
+              la Wallonie jusqu'au Parlement de la FWB, à Bruxelles, pour porter les lettres de centaines — voire de milliers —
+              de citoyen·nes en lutte.
+            </p>
+            <p>
+              De proche en proche, d'école en école, nous collecterons des lettres manuscrites pour les déposer en personne
+              là où les décisions se prennent. Parce que certains messages méritent d'être portés à la force des jambes.
+            </p>
+          </div>
+
+          {/* Vidéo — à droite, plus petite */}
+          <div className="mt-6 md:mt-0 flex md:justify-end">
+            <div className="relative w-full max-w-[200px]" style={{ paddingBottom: "100%" }}>
+              <iframe
+                src="https://www.youtube.com/embed/fx9p-qHkqdU"
+                title="Facteurs à bicyclette"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="absolute inset-0 w-full h-full border border-black/10 object-cover"
+              />
+            </div>
+          </div>
         </div>
 
-        <div className="flex flex-wrap gap-3 mb-6">
+        {/* Boutons */}
+        <div className="flex flex-wrap gap-3">
           <Link href="/inscription" className="bg-[#C0440E] text-white font-medium px-7 py-3 hover:bg-[#8A2E06] transition-colors">
             Rejoindre l'aventure →
           </Link>
           <Link href="/action" className="border border-black/20 text-[#1C1917] font-medium px-7 py-3 hover:border-black/50 transition-colors">
             En savoir plus
           </Link>
-          <Link
-            href="/lettre"
-            className="border border-[#C0440E] text-[#C0440E] font-medium px-7 py-3 hover:bg-[#C0440E]/5 transition-colors"
-          >
+          <Link href="/lettre" className="border border-[#C0440E] text-[#C0440E] font-medium px-7 py-3 hover:bg-[#C0440E]/5 transition-colors">
             ✉️ Modèle de lettre
           </Link>
           <a href="#parcours" className="border border-black/20 text-[#1C1917] font-medium px-7 py-3 hover:border-black/50 transition-colors">
             Voir le parcours
           </a>
+          <Link href="/faq" className="border border-black/20 text-[#1C1917] font-medium px-7 py-3 hover:border-black/50 transition-colors">
+            ❓ FAQ
+          </Link>
         </div>
-        <Link href="/faq" className="border border-black/20 text-[#1C1917] font-medium px-7 py-3 hover:border-black/50 transition-colors">
-          ❓ FAQ
-        </Link>
       </section>
 
       {/* CARTE ANIMÉE */}
