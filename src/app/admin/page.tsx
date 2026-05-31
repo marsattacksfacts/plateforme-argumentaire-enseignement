@@ -78,6 +78,63 @@ const TYPE_LABELS: Record<string, string> = {
   depart: "Départ", halte: "Halte", etape_cle: "Étape clé", nuit: "Nuit", arrivee: "Arrivée",
 };
 
+function ConfigPanel() {
+  const [config, setConfig] = useState<Record<string, boolean>>({});
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    supabase.from("config").select("*").then(({ data }) => {
+      const map: Record<string, boolean> = {};
+      data?.forEach((r: { key: string; value: boolean }) => { map[r.key] = r.value; });
+      setConfig(map);
+    });
+  }, []);
+
+  const toggle = async (key: string, value: boolean) => {
+    setConfig(prev => ({ ...prev, [key]: value }));
+    await supabase.from("config").upsert({ key, value });
+  };
+
+  const closeAll = async () => {
+    setSaving(true);
+    for (const k of ['inscriptions_cycliste','inscriptions_halte','inscriptions_accueillant','inscriptions_coordinateur']) {
+      setConfig(prev => ({ ...prev, [k]: false }));
+      await supabase.from("config").upsert({ key: k, value: false });
+    }
+    setSaving(false);
+  };
+
+  const openAll = async () => {
+    setSaving(true);
+    for (const k of ['inscriptions_cycliste','inscriptions_halte','inscriptions_accueillant','inscriptions_coordinateur']) {
+      setConfig(prev => ({ ...prev, [k]: true }));
+      await supabase.from("config").upsert({ key: k, value: true });
+    }
+    setSaving(false);
+  };
+
+  return (
+    <div className="space-y-4 max-w-md">
+      <h3 className="font-serif font-bold text-lg text-[#1C1917] mb-4">Ouverture des inscriptions</h3>
+      {[
+        { key: "inscriptions_cycliste", label: "🚴 Cyclistes" },
+        { key: "inscriptions_halte", label: "🏫 Organisateurs de haltes" },
+        { key: "inscriptions_accueillant", label: "🏠 Hébergeurs" },
+        { key: "inscriptions_coordinateur", label: "🗺️ Coordinateurs" },
+      ].map(({ key, label }) => (
+        <label key={key} className="flex items-center justify-between p-3 border border-black/10 bg-white cursor-pointer">
+          <span className="text-sm font-medium">{label}</span>
+          <input type="checkbox" checked={config[key] !== false} onChange={e => toggle(key, e.target.checked)} className="w-5 h-5 accent-[#C0440E]" />
+        </label>
+      ))}
+      <div className="flex gap-3 mt-4">
+        <button onClick={closeAll} disabled={saving} className="text-xs bg-[#1C1917] text-white px-4 py-2 hover:bg-black/80 disabled:opacity-50">Tout fermer</button>
+        <button onClick={openAll} disabled={saving} className="text-xs bg-[#C0440E] text-white px-4 py-2 hover:bg-[#8A2E06] disabled:opacity-50">Tout ouvrir</button>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const router = useRouter();
   const [inscriptions, setInscriptions] = useState<Inscription[]>([]);
@@ -86,7 +143,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [filterRole, setFilterRole] = useState("");
   const [search, setSearch] = useState("");
-  const [tab, setTab] = useState<"general" | "cyclistes" | "haltes">("general");
+  const [tab, setTab] = useState<"general" | "cyclistes" | "haltes" | "config">("general");
   const [sortField, setSortField] = useState<"created_at" | "nom">("created_at");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [expandedTroncon, setExpandedTroncon] = useState<string | null>(null);
@@ -229,7 +286,12 @@ export default function AdminDashboard() {
           ))}
         </div>
         <div className="flex gap-2 mb-6">
-          {[{ key: "general", label: "📋 Toutes les inscriptions" },{ key: "cyclistes", label: "🚴 Cyclistes par tronçon" },{ key: "haltes", label: "🗺️ Tronçons & Haltes" }].map(o => (
+          {[
+            { key: "general", label: "📋 Toutes les inscriptions" },
+            { key: "cyclistes", label: "🚴 Cyclistes par tronçon" },
+            { key: "haltes", label: "🗺️ Tronçons & Haltes" },
+            { key: "config", label: "⚙️ Configuration" },
+          ].map(o => (
             <button key={o.key} onClick={() => setTab(o.key as typeof tab)} className={`px-4 py-2 text-sm font-medium border transition-colors ${tab === o.key ? "bg-[#1C1917] text-white border-[#1C1917]" : "bg-white border-black/10 text-[#6B6459] hover:border-black/25"}`}>{o.label}</button>
           ))}
         </div>
@@ -347,6 +409,8 @@ export default function AdminDashboard() {
             </div>
           </>
         )}
+
+        {tab === "config" && <ConfigPanel />}
       </div>
 
       {editingInscription && (
