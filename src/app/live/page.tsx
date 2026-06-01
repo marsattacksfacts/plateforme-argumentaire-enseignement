@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
@@ -51,6 +51,29 @@ const TRACE: [number, number][] = [
   [50.842382, 4.368650], [50.845200, 4.370142],
 ];
 
+// ── HALTES (coords approx) ────────────────────────────────────────────────
+
+const HALTES_COORDS: { id: number; ville: string; type: string; lat: number; lng: number }[] = [
+  { id: 1,  ville: "Verviers",        type: "depart",     lat: 50.592580, lng: 5.861104 },
+  { id: 2,  ville: "Herve",           type: "halte",      lat: 50.613100, lng: 5.833085 },
+  { id: 3,  ville: "Soumagne",        type: "halte",      lat: 50.621561, lng: 5.829529 },
+  { id: 4,  ville: "Chênée",          type: "halte",      lat: 50.615214, lng: 5.621465 },
+  { id: 5,  ville: "Liège",           type: "etape_cle",  lat: 50.640309, lng: 5.786100 },
+  { id: 6,  ville: "Seraing",         type: "halte",      lat: 50.603,    lng: 5.507 },
+  { id: 7,  ville: "Huy",             type: "nuit",       lat: 50.523751, lng: 5.231206 },
+  { id: 8,  ville: "Andenne",         type: "halte",      lat: 50.498974, lng: 5.120757 },
+  { id: 9,  ville: "Jambes",          type: "halte",      lat: 50.469450, lng: 5.003953 },
+  { id: 10, ville: "Namur",           type: "etape_cle",  lat: 50.465499, lng: 4.893198 },
+  { id: 11, ville: "Saint-Servais",   type: "halte",      lat: 50.483184, lng: 4.836371 },
+  { id: 12, ville: "Gembloux",        type: "nuit",       lat: 50.559751, lng: 4.694289 },
+  { id: 13, ville: "Mont-St-Guibert", type: "halte",      lat: 50.607445, lng: 4.660519 },
+  { id: 14, ville: "Court-St-Étienne",type: "halte",      lat: 50.635188, lng: 4.613860 },
+  { id: 15, ville: "Ottignies",       type: "halte",      lat: 50.681454, lng: 4.560817 },
+  { id: 16, ville: "Rixensart",       type: "halte",      lat: 50.735901, lng: 4.474639 },
+  { id: 17, ville: "Etterbeek",       type: "halte",      lat: 50.824274, lng: 4.381564 },
+  { id: 18, ville: "Bruxelles",       type: "arrivee",    lat: 50.845200, lng: 4.370142 },
+];
+
 // ── HELPERS ────────────────────────────────────────────────────────────────
 
 function distM(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -73,19 +96,14 @@ function cumulKmToIdx(idx: number): number {
   return d / 1000;
 }
 
-// Détecte les phases de roulage : fenêtre glissante de 5 points, cumul > 80m en < 3 min → roulage
 function computeRollingData(locs: { lat: number; lng: number; created_at: string }[]) {
   let rollingSec = 0;
   let rollingDist = 0;
-  const WINDOW = 5;
-  for (let i = WINDOW; i < locs.length; i++) {
-    const windowLocs = locs.slice(i - WINDOW, i + 1);
-    const d = distM(windowLocs[0].lat, windowLocs[0].lng, windowLocs[WINDOW].lat, windowLocs[WINDOW].lng);
-    const dt = (new Date(windowLocs[WINDOW].created_at).getTime() - new Date(windowLocs[0].created_at).getTime()) / 1000;
-    if (d > 80 && dt < 180) {
-      rollingSec += dt;
-      rollingDist += d;
-    }
+  if (locs.length < 2) return { rollingSec: 0, rollingDist: 0 };
+  for (let i = 1; i < locs.length; i++) {
+    const d = distM(locs[i-1].lat, locs[i-1].lng, locs[i].lat, locs[i].lng);
+    const dt = (new Date(locs[i].created_at).getTime() - new Date(locs[i-1].created_at).getTime()) / 1000;
+    if (d > 10 && dt < 300) { rollingSec += dt; rollingDist += d; }
   }
   return { rollingSec, rollingDist };
 }
@@ -97,7 +115,6 @@ export default function LivePage() {
   const [haltes, setHaltes] = useState<{ id: number; ordre: number; ville: string; type: string; heure_arrivee: string | null }[]>([]);
   const [troncons, setTroncons] = useState<{ id: number; ordre: number; distance_km: number; halte_arrivee_id: number }[]>([]);
   const [carteJour, setCarteJour] = useState<1 | 2 | 3>(1);
-  const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -115,7 +132,7 @@ export default function LivePage() {
     return () => clearInterval(interval);
   }, []);
 
-  if (locations.length < 5) return <main className="min-h-screen bg-[#F5F0E8] flex items-center justify-center"><p className="text-[#6B6459]">En attente des premières positions...</p></main>;
+  if (locations.length < 2) return <main className="min-h-screen bg-[#F5F0E8] flex items-center justify-center"><p className="text-[#6B6459]">En attente des premières positions...</p></main>;
 
   const last = locations[locations.length - 1];
   const lastIdx = closestTraceIdx(last.lat, last.lng);
@@ -125,30 +142,15 @@ export default function LivePage() {
   const rollingMin = rollingSec / 60;
   const vitesseRoulage = rollingSec > 0 ? (rollingDist / 1000) / (rollingSec / 3600) : 0;
 
-  // Tronçon actuel : depuis la dernière halte dépassée
-  let derniereHalteDepasseeIdx = 0;
-  let tronconStartIdx = 0;
-  for (const h of haltes) {
-    const hIdx = closestTraceIdx(50.5, 5.0); // fallback, on va utiliser les tronçons
-    break; // on utilise une autre méthode
-  }
-  // Méthode simple : le tronçon actuel est celui dont l'arrivée n'est pas encore dépassée
+  // Tronçon actuel
   let tronconActuel: typeof troncons[0] | null = null;
   let cumulAvantTroncon = 0;
-  let cumulApresTroncon = 0;
   for (const t of troncons) {
-    const arrH = haltes.find(h => h.id === t.halte_arrivee_id);
-    if (!arrH) continue;
-    const arrIdx = closestTraceIdx(50.5, 5.0); // approximatif
-    cumulApresTroncon = troncons.filter(x => x.ordre <= t.ordre).reduce((s, x) => s + x.distance_km, 0);
-    if (cumulApresTroncon > distParcourue) {
-      tronconActuel = t;
-      cumulAvantTroncon = cumulApresTroncon - t.distance_km;
-      break;
-    }
+    const cumulApres = troncons.filter(x => x.ordre <= t.ordre).reduce((s, x) => s + x.distance_km, 0);
+    if (cumulApres > distParcourue) { tronconActuel = t; cumulAvantTroncon = cumulApres - t.distance_km; break; }
   }
   const distSurTroncon = distParcourue - cumulAvantTroncon;
-  const vitesseTroncon = rollingSec > 0 ? (distSurTroncon / (rollingSec / 3600)) : 0; // approximatif
+  const vitesseTroncon = rollingSec > 0 ? (distSurTroncon / (rollingSec / 3600)) : 0;
   const vitessePourEstimation = distSurTroncon > 1 ? (vitesseTroncon || 12) : (vitesseRoulage || 12);
 
   // Prochaine halte
@@ -158,26 +160,43 @@ export default function LivePage() {
     if (h.type === "depart" || h.type === "nuit") continue;
     let distToHalte = 0;
     for (const t of troncons) {
-      if (t.halte_arrivee_id === h.id) {
-        distToHalte = troncons.filter(x => x.ordre <= t.ordre).reduce((s, x) => s + x.distance_km, 0);
-        break;
-      }
+      if (t.halte_arrivee_id === h.id) { distToHalte = troncons.filter(x => x.ordre <= t.ordre).reduce((s, x) => s + x.distance_km, 0); break; }
     }
-    if (distToHalte > distParcourue) {
-      prochaineHalte = h;
-      tempsRestant = (distToHalte - distParcourue) / vitessePourEstimation;
-      break;
-    }
+    if (distToHalte > distParcourue) { prochaineHalte = h; tempsRestant = (distToHalte - distParcourue) / vitessePourEstimation; break; }
   }
 
-  // Déterminer le jour actuel pour la carte
+  // Jour actuel pour la carte
   const jourActuel = distParcourue < 65 ? 1 : distParcourue < 120 ? 2 : 3;
-  const traceDuJour = TRACE.filter((_, i) => {
-    const km = cumulKmToIdx(i);
-    if (jourActuel === 1) return km < 70;
-    if (jourActuel === 2) return km >= 60 && km < 130;
-    return km >= 120;
+  const displayJour = carteJour || jourActuel;
+
+  // Filtrer trace et haltes pour le jour affiché
+  const kmDebut = displayJour === 1 ? 0 : displayJour === 2 ? 60 : 120;
+  const kmFin = displayJour === 1 ? 70 : displayJour === 2 ? 130 : 200;
+  const traceDuJour = TRACE.filter((_, i) => { const km = cumulKmToIdx(i); return km >= kmDebut && km < kmFin; });
+  const haltesDuJour = HALTES_COORDS.filter(h => {
+    const hIdx = closestTraceIdx(h.lat, h.lng);
+    const km = cumulKmToIdx(hIdx);
+    return km >= kmDebut - 5 && km < kmFin + 5;
   });
+
+  // Projeter un point
+  const project = (lat: number, lng: number) => {
+    const lats = traceDuJour.map(t => t[0]), lngs = traceDuJour.map(t => t[1]);
+    if (lats.length === 0) return { x: 400, y: 150 };
+    const minLat = Math.min(...lats), maxLat = Math.max(...lats), minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+    const pad = 40;
+    const x = pad + ((lng - minLng) / (maxLng - minLng || 1)) * (800 - 2 * pad);
+    const y = 300 - pad - ((lat - minLat) / (maxLat - minLat || 1)) * (300 - 2 * pad);
+    return { x, y };
+  };
+
+  const getHalteStyle = (type: string) => {
+    if (type === "depart") return { fill: "#C0440E", r: 6, stroke: "#FBF6ED" };
+    if (type === "etape_cle") return { fill: "#C0440E", r: 5, stroke: "#FBF6ED" };
+    if (type === "nuit") return { fill: "#E8B43A", r: 7, stroke: "#1C1917" };
+    if (type === "arrivee") return { fill: "#1C1917", r: 7, stroke: "#FBF6ED" };
+    return { fill: "#1C1917", r: 3, stroke: "none", opacity: 0.45 };
+  };
 
   return (
     <main className="min-h-screen bg-[#F5F0E8] text-[#1C1917] font-sans">
@@ -185,7 +204,7 @@ export default function LivePage() {
         <Link href="/" className="hover:opacity-80"><p className="font-serif font-bold text-[#C0440E] text-sm">Facteur·ices à bicyclette</p><p className="text-xs text-[#6B6459] italic">Périple épiscolaire · 2026</p></Link>
         <div className="flex gap-2">
           {([1, 2, 3] as const).map(j => (
-            <button key={j} onClick={() => setCarteJour(j)} className={`text-xs px-2 py-1 border ${carteJour === j ? "bg-[#C0440E] text-white border-[#C0440E]" : "border-black/10 text-[#6B6459]"}`}>J{j}</button>
+            <button key={j} onClick={() => setCarteJour(j)} className={`text-xs px-2 py-1 border ${displayJour === j ? "bg-[#C0440E] text-white border-[#C0440E]" : "border-black/10 text-[#6B6459]"}`}>J{j}</button>
           ))}
         </div>
       </nav>
@@ -218,24 +237,30 @@ export default function LivePage() {
 
         {/* Carte */}
         <div className="border border-black/10 bg-white p-2">
-          <svg ref={svgRef} viewBox="0 0 800 300" className="w-full" style={{ height: "auto" }}>
+          <svg viewBox="0 0 800 300" className="w-full" style={{ height: "auto" }}>
+            {/* Tracé */}
             {traceDuJour.length > 1 && (
               <polyline
-                points={traceDuJour.map(([lat, lng]) => {
-                  const lats = traceDuJour.map(t => t[0]), lngs = traceDuJour.map(t => t[1]);
-                  const minLat = Math.min(...lats), maxLat = Math.max(...lats), minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
-                  const x = 20 + ((lng - minLng) / (maxLng - minLng)) * 760;
-                  const y = 280 - ((lat - minLat) / (maxLat - minLat)) * 260;
-                  return `${x},${y}`;
-                }).join(" ")}
+                points={traceDuJour.map(t => { const { x, y } = project(t[0], t[1]); return `${x},${y}`; }).join(" ")}
                 fill="none" stroke="#C0440E" strokeWidth="2" strokeDasharray="6 4" opacity="0.5"
               />
             )}
+            {/* Haltes */}
+            {haltesDuJour.map(h => {
+              const { x, y } = project(h.lat, h.lng);
+              const style = getHalteStyle(h.type);
+              return (
+                <g key={h.id}>
+                  <circle cx={x} cy={y} r={style.r} fill={style.fill} stroke={style.stroke} strokeWidth="1.5" opacity={style.opacity || 1} />
+                  <text x={x} y={y - style.r - 3} textAnchor="middle" fontSize="7" fill="#1C1917" fontWeight="bold">{h.ville}</text>
+                  {h.type === "nuit" && <text x={x} y={y + 3} textAnchor="middle" fontSize="6" fill="#1C1917">🌙</text>}
+                  {h.type === "etape_cle" && <text x={x} y={y + 3} textAnchor="middle" fontSize="6" fill="#1C1917">🍽️</text>}
+                </g>
+              );
+            })}
+            {/* Position actuelle */}
             {last && (() => {
-              const lats = traceDuJour.map(t => t[0]), lngs = traceDuJour.map(t => t[1]);
-              const minLat = Math.min(...lats), maxLat = Math.max(...lats), minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
-              const x = 20 + ((last.lng - minLng) / (maxLng - minLng)) * 760;
-              const y = 280 - ((last.lat - minLat) / (maxLat - minLat)) * 260;
+              const { x, y } = project(last.lat, last.lng);
               return <circle cx={x} cy={y} r="6" fill="#22c55e" stroke="white" strokeWidth="2" />;
             })()}
           </svg>
