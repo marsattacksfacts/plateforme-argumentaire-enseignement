@@ -5,7 +5,7 @@ import path from "path";
 export default async function PhotosPage() {
   const dir = path.join(process.cwd(), "public/photos");
   let files: string[] = [];
-  try { files = fs.readdirSync(dir).filter(f => /\.(jpg|jpeg|png|webp|gif)$/i.test(f)); } catch {}
+  try { files = fs.readdirSync(dir).filter(f => /\.(jpg|jpeg|png|webp|gif|mp4|webm|mov)$/i.test(f)); } catch {}
 
   return (
     <main className="min-h-screen bg-[#F5F0E8] text-[#1C1917] font-sans">
@@ -14,16 +14,23 @@ export default async function PhotosPage() {
         <Link href="/inscription" className="bg-[#C0440E] text-white text-sm font-medium px-4 py-2 hover:bg-[#8A2E06] transition-colors">S&apos;inscrire</Link>
       </nav>
       <section className="pt-28 pb-20 px-4 md:px-8 max-w-5xl mx-auto">
-        <h1 className="font-serif text-4xl md:text-5xl font-black mb-10">Photos</h1>
+        <h1 className="font-serif text-4xl md:text-5xl font-black mb-10">Photos & Vidéos</h1>
         {files.length === 0 ? (
-          <p className="text-[#6B6459]">Aucune photo pour le moment. Revenez bientôt !</p>
+          <p className="text-[#6B6459]">Aucun média pour le moment. Revenez bientôt !</p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {files.map(f => (
-              <a key={f} href={`/photos/${f}`} target="_blank" className="block border border-black/10 hover:shadow-lg transition-shadow">
-                <img src={`/photos/${f}`} alt={f} className="w-full h-48 object-cover" />
-              </a>
-            ))}
+            {files.map(f => {
+              const isVideo = /\.(mp4|webm|mov)$/i.test(f);
+              return (
+                <a key={f} href={`/photos/${f}`} target="_blank" className="block border border-black/10 hover:shadow-lg transition-shadow">
+                  {isVideo ? (
+                    <video src={`/photos/${f}`} controls className="w-full h-48 object-cover" />
+                  ) : (
+                    <img src={`/photos/${f}`} alt={f} className="w-full h-48 object-cover" />
+                  )}
+                </a>
+              );
+            })}
           </div>
         )}
       </section>
