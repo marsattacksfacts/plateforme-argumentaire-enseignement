@@ -191,10 +191,17 @@ export default function CartePeriple() {
   // Mode live
   useEffect(() => {
     const eventStart = new Date("2026-06-01T06:00:00+02:00").getTime();
-    if (Date.now() < eventStart) return;
+    console.log("Live check — now:", Date.now(), "start:", eventStart, "diff:", Date.now() - eventStart);
+    if (Date.now() < eventStart) {
+      console.log("Événement pas encore commencé");
+      return;
+    }
+    console.log("🚀 MODE LIVE ACTIVÉ");
     setIsLive(true);
+    console.log("isLive set to true");
 
     const poll = async () => {
+      console.log("📡 Polling...");
       const { data } = await supabase.from("locations").select("lat, lng, created_at").order("created_at", { ascending: false }).limit(1);
       if (data?.length) {
         console.log("Dernière position:", data[0].lat, data[0].lng, "âge:", (Date.now() - new Date(data[0].created_at).getTime()) / 1000, "secondes");
@@ -226,6 +233,7 @@ export default function CartePeriple() {
     };
 
     poll();
+    console.log("📍 Premier poll lancé, intervalle démarré");
     const interval = setInterval(poll, 15000);
     return () => clearInterval(interval);
   }, [dimensions]);
