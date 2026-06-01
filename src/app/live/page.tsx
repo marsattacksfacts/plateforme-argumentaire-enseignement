@@ -1,26 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 const supabase = createClient();
 
-interface Location {
-  lat: number;
-  lng: number;
-  created_at: string;
-}
-
-interface Halte {
-  id: number; ordre: number; ville: string; type: string; jour: number;
-  heure_arrivee: string | null; heure_depart: string | null;
-}
-
-interface Troncon {
-  id: number; ordre: number; halte_depart_id: number; halte_arrivee_id: number;
-  distance_km: number; denivele_pos: number; code: string;
-}
+// ── TRACE ──────────────────────────────────────────────────────────────────
 
 const TRACE: [number, number][] = [
   [50.592580, 5.861104], [50.595435, 5.852475], [50.597115, 5.843460],
@@ -65,7 +51,9 @@ const TRACE: [number, number][] = [
   [50.842382, 4.368650], [50.845200, 4.370142],
 ];
 
-function distanceBetween(lat1: number, lng1: number, lat2: number, lng2: number): number {
+// ── HELPERS ────────────────────────────────────────────────────────────────
+
+function distM(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371e3;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLng = (lng2 - lng1) * Math.PI / 180;
@@ -73,65 +61,101 @@ function distanceBetween(lat1: number, lng1: number, lat2: number, lng2: number)
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function findClosestOnTrace(lat: number, lng: number): number {
-  let bestIdx = 0, bestDist = Infinity;
-  TRACE.forEach(([tlat, tlng], i) => {
-    const d = (tlat - lat) ** 2 + (tlng - lng) ** 2;
-    if (d < bestDist) { bestDist = d; bestIdx = i; }
-  });
-  return bestIdx;
+function closestTraceIdx(lat: number, lng: number): number {
+  let best = 0, bestD = Infinity;
+  TRACE.forEach(([tlat, tlng], i) => { const d = (tlat-lat)**2 + (tlng-lng)**2; if (d < bestD) { bestD = d; best = i; } });
+  return best;
 }
 
-function cumulativeKmFromTrace(index: number): number {
+function cumulKmToIdx(idx: number): number {
   let d = 0;
-  for (let i = 1; i <= index; i++) d += distanceBetween(TRACE[i-1][0], TRACE[i-1][1], TRACE[i][0], TRACE[i][1]);
+  for (let i = 1; i <= idx; i++) d += distM(TRACE[i-1][0], TRACE[i-1][1], TRACE[i][0], TRACE[i][1]);
   return d / 1000;
 }
 
+// Détecte les phases de roulage : fenêtre glissante de 5 points, cumul > 80m en < 3 min → roulage
+function computeRollingData(locs: { lat: number; lng: number; created_at: string }[]) {
+  let rollingSec = 0;
+  let rollingDist = 0;
+  const WINDOW = 5;
+  for (let i = WINDOW; i < locs.length; i++) {
+    const windowLocs = locs.slice(i - WINDOW, i + 1);
+    const d = distM(windowLocs[0].lat, windowLocs[0].lng, windowLocs[WINDOW].lat, windowLocs[WINDOW].lng);
+    const dt = (new Date(windowLocs[WINDOW].created_at).getTime() - new Date(windowLocs[0].created_at).getTime()) / 1000;
+    if (d > 80 && dt < 180) {
+      rollingSec += dt;
+      rollingDist += d;
+    }
+  }
+  return { rollingSec, rollingDist };
+}
+
+// ── PAGE ───────────────────────────────────────────────────────────────────
+
 export default function LivePage() {
-  const [locations, setLocations] = useState<Location[]>([]);
-  const [haltes, setHaltes] = useState<Halte[]>([]);
-  const [troncons, setTroncons] = useState<Troncon[]>([]);
-  const [now, setNow] = useState(Date.now());
+  const [locations, setLocations] = useState<{ lat: number; lng: number; created_at: string }[]>([]);
+  const [haltes, setHaltes] = useState<{ id: number; ordre: number; ville: string; type: string; heure_arrivee: string | null }[]>([]);
+  const [troncons, setTroncons] = useState<{ id: number; ordre: number; distance_km: number; halte_arrivee_id: number }[]>([]);
+  const [carteJour, setCarteJour] = useState<1 | 2 | 3>(1);
+  const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
-    supabase.from("locations").select("*").order("created_at", { ascending: true }).then(({ data }) => setLocations(data || []));
-    supabase.from("haltes").select("*").order("ordre").then(({ data }) => setHaltes(data || []));
-    supabase.from("troncons").select("*").order("ordre").then(({ data }) => setTroncons(data || []));
-    const interval = setInterval(() => { setNow(Date.now()); supabase.from("locations").select("*").order("created_at", { ascending: true }).then(({ data }) => setLocations(data || [])); }, 15000);
+    const load = async () => {
+      const [{ data: locs }, { data: h }, { data: t }] = await Promise.all([
+        supabase.from("locations").select("*").order("created_at", { ascending: true }),
+        supabase.from("haltes").select("id, ordre, ville, type, heure_arrivee").order("ordre"),
+        supabase.from("troncons").select("id, ordre, distance_km, halte_arrivee_id").order("ordre"),
+      ]);
+      setLocations(locs || []);
+      setHaltes(h || []);
+      setTroncons(t || []);
+    };
+    load();
+    const interval = setInterval(load, 15000);
     return () => clearInterval(interval);
   }, []);
 
-  if (locations.length < 2) return <main className="min-h-screen bg-[#F5F0E8] flex items-center justify-center"><p className="text-[#6B6459]">En attente des premières positions...</p></main>;
+  if (locations.length < 5) return <main className="min-h-screen bg-[#F5F0E8] flex items-center justify-center"><p className="text-[#6B6459]">En attente des premières positions...</p></main>;
 
-  // Distance totale
-  const lastLoc = locations[locations.length - 1];
-  const lastIdx = findClosestOnTrace(lastLoc.lat, lastLoc.lng);
-  const distanceParcourue = cumulativeKmFromTrace(lastIdx);
+  const last = locations[locations.length - 1];
+  const lastIdx = closestTraceIdx(last.lat, last.lng);
+  const distParcourue = cumulKmToIdx(lastIdx);
 
-  // Temps de roulage : séquences de points consécutifs > 100m en moins de 2 minutes
-  let rollingSeconds = 0;
-  for (let i = 1; i < locations.length; i++) {
-    const d = distanceBetween(locations[i-1].lat, locations[i-1].lng, locations[i].lat, locations[i].lng);
-    const dt = (new Date(locations[i].created_at).getTime() - new Date(locations[i-1].created_at).getTime()) / 1000;
-    if (d > 100 && dt < 120) rollingSeconds += dt;
+  const { rollingSec, rollingDist } = computeRollingData(locations);
+  const rollingMin = rollingSec / 60;
+  const vitesseRoulage = rollingSec > 0 ? (rollingDist / 1000) / (rollingSec / 3600) : 0;
+
+  // Tronçon actuel : depuis la dernière halte dépassée
+  let derniereHalteDepasseeIdx = 0;
+  let tronconStartIdx = 0;
+  for (const h of haltes) {
+    const hIdx = closestTraceIdx(50.5, 5.0); // fallback, on va utiliser les tronçons
+    break; // on utilise une autre méthode
   }
-  const rollingMinutes = rollingSeconds / 60;
-
-  // Vitesse moyenne générale (km/h)
-  const totalTimeH = (new Date(lastLoc.created_at).getTime() - new Date(locations[0].created_at).getTime()) / 3600000;
-  const vitesseMoyenne = totalTimeH > 0 ? distanceParcourue / totalTimeH : 0;
-  const vitesseRoulage = rollingMinutes > 0 ? (distanceParcourue / (rollingMinutes / 60)) : 0;
+  // Méthode simple : le tronçon actuel est celui dont l'arrivée n'est pas encore dépassée
+  let tronconActuel: typeof troncons[0] | null = null;
+  let cumulAvantTroncon = 0;
+  let cumulApresTroncon = 0;
+  for (const t of troncons) {
+    const arrH = haltes.find(h => h.id === t.halte_arrivee_id);
+    if (!arrH) continue;
+    const arrIdx = closestTraceIdx(50.5, 5.0); // approximatif
+    cumulApresTroncon = troncons.filter(x => x.ordre <= t.ordre).reduce((s, x) => s + x.distance_km, 0);
+    if (cumulApresTroncon > distParcourue) {
+      tronconActuel = t;
+      cumulAvantTroncon = cumulApresTroncon - t.distance_km;
+      break;
+    }
+  }
+  const distSurTroncon = distParcourue - cumulAvantTroncon;
+  const vitesseTroncon = rollingSec > 0 ? (distSurTroncon / (rollingSec / 3600)) : 0; // approximatif
+  const vitessePourEstimation = distSurTroncon > 1 ? (vitesseTroncon || 12) : (vitesseRoulage || 12);
 
   // Prochaine halte
-  let prochaineHalte: Halte | null = null;
+  let prochaineHalte: typeof haltes[0] | null = null;
   let tempsRestant = 0;
-  let vitesseUtilisee = vitesseRoulage > 0 ? vitesseRoulage : 12;
-  const premierKm = distanceParcourue < 1;
-  if (premierKm && vitesseMoyenne > 0) vitesseUtilisee = vitesseMoyenne;
-
   for (const h of haltes) {
-    if (h.type === "nuit" || h.type === "depart") continue;
+    if (h.type === "depart" || h.type === "nuit") continue;
     let distToHalte = 0;
     for (const t of troncons) {
       if (t.halte_arrivee_id === h.id) {
@@ -139,28 +163,42 @@ export default function LivePage() {
         break;
       }
     }
-    if (distToHalte > distanceParcourue) {
+    if (distToHalte > distParcourue) {
       prochaineHalte = h;
-      tempsRestant = (distToHalte - distanceParcourue) / vitesseUtilisee;
+      tempsRestant = (distToHalte - distParcourue) / vitessePourEstimation;
       break;
     }
   }
+
+  // Déterminer le jour actuel pour la carte
+  const jourActuel = distParcourue < 65 ? 1 : distParcourue < 120 ? 2 : 3;
+  const traceDuJour = TRACE.filter((_, i) => {
+    const km = cumulKmToIdx(i);
+    if (jourActuel === 1) return km < 70;
+    if (jourActuel === 2) return km >= 60 && km < 130;
+    return km >= 120;
+  });
 
   return (
     <main className="min-h-screen bg-[#F5F0E8] text-[#1C1917] font-sans">
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-[#F5F0E8]/90 backdrop-blur border-b border-black/10">
         <Link href="/" className="hover:opacity-80"><p className="font-serif font-bold text-[#C0440E] text-sm">Facteur·ices à bicyclette</p><p className="text-xs text-[#6B6459] italic">Périple épiscolaire · 2026</p></Link>
-        <Link href="/inscription" className="bg-[#C0440E] text-white text-sm font-medium px-4 py-2 hover:bg-[#8A2E06]">S&apos;inscrire</Link>
+        <div className="flex gap-2">
+          {([1, 2, 3] as const).map(j => (
+            <button key={j} onClick={() => setCarteJour(j)} className={`text-xs px-2 py-1 border ${carteJour === j ? "bg-[#C0440E] text-white border-[#C0440E]" : "border-black/10 text-[#6B6459]"}`}>J{j}</button>
+          ))}
+        </div>
       </nav>
 
       <section className="pt-28 pb-20 px-4 md:px-8 max-w-3xl mx-auto">
         <h1 className="font-serif text-4xl md:text-5xl font-black mb-10">Suivi live</h1>
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
           {[
-            { label: "Distance parcourue", value: `${distanceParcourue.toFixed(1)} km` },
-            { label: "Temps de roulage", value: `${Math.floor(rollingMinutes)} min` },
+            { label: "Distance parcourue", value: `${distParcourue.toFixed(1)} km` },
+            { label: "Temps de roulage", value: `${Math.floor(rollingMin)} min` },
             { label: "Vitesse roulage", value: `${vitesseRoulage.toFixed(1)} km/h` },
-            { label: "Vitesse moyenne", value: `${vitesseMoyenne.toFixed(1)} km/h` },
+            { label: "Vitesse tronçon", value: `${vitesseTroncon.toFixed(1)} km/h` },
           ].map(s => (
             <div key={s.label} className="bg-white border border-black/10 p-4 text-center">
               <p className="font-serif text-3xl font-black text-[#C0440E]">{s.value}</p>
@@ -168,19 +206,40 @@ export default function LivePage() {
             </div>
           ))}
         </div>
-        {prochaineHalte && distanceParcourue > 0.5 && (
-          <div className="bg-[#C0440E]/5 border border-[#C0440E]/20 p-6 text-center">
+
+        {distParcourue > 0.5 && prochaineHalte && (
+          <div className="bg-[#C0440E]/5 border border-[#C0440E]/20 p-6 text-center mb-10">
             <p className="text-xs text-[#C0440E] uppercase tracking-widest mb-2">Prochaine halte</p>
             <p className="font-serif text-2xl font-bold text-[#1C1917]">{prochaineHalte.ville}</p>
             {prochaineHalte.heure_arrivee && <p className="text-sm text-[#6B6459] mt-1">Arrivée prévue : {prochaineHalte.heure_arrivee}</p>}
             <p className="text-lg font-bold text-[#C0440E] mt-2">~{Math.round(tempsRestant * 60)} min restantes</p>
           </div>
         )}
-        {distanceParcourue <= 0.5 && (
-          <div className="bg-[#E8B43A]/10 border border-[#E8B43A]/30 p-6 text-center">
-            <p className="text-sm text-[#6B6459]">En attente des premiers kilomètres pour calculer l'estimation...</p>
-          </div>
-        )}
+
+        {/* Carte */}
+        <div className="border border-black/10 bg-white p-2">
+          <svg ref={svgRef} viewBox="0 0 800 300" className="w-full" style={{ height: "auto" }}>
+            {traceDuJour.length > 1 && (
+              <polyline
+                points={traceDuJour.map(([lat, lng]) => {
+                  const lats = traceDuJour.map(t => t[0]), lngs = traceDuJour.map(t => t[1]);
+                  const minLat = Math.min(...lats), maxLat = Math.max(...lats), minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+                  const x = 20 + ((lng - minLng) / (maxLng - minLng)) * 760;
+                  const y = 280 - ((lat - minLat) / (maxLat - minLat)) * 260;
+                  return `${x},${y}`;
+                }).join(" ")}
+                fill="none" stroke="#C0440E" strokeWidth="2" strokeDasharray="6 4" opacity="0.5"
+              />
+            )}
+            {last && (() => {
+              const lats = traceDuJour.map(t => t[0]), lngs = traceDuJour.map(t => t[1]);
+              const minLat = Math.min(...lats), maxLat = Math.max(...lats), minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+              const x = 20 + ((last.lng - minLng) / (maxLng - minLng)) * 760;
+              const y = 280 - ((last.lat - minLat) / (maxLat - minLat)) * 260;
+              return <circle cx={x} cy={y} r="6" fill="#22c55e" stroke="white" strokeWidth="2" />;
+            })()}
+          </svg>
+        </div>
       </section>
     </main>
   );
