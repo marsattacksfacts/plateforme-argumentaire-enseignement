@@ -64,6 +64,7 @@ export default function Home() {
         <div className="fixed top-16 left-0 right-0 z-40 bg-[#F5F0E8] border-b border-black/10 px-6 py-6 space-y-4 text-sm font-medium shadow-lg">
           <Link href="/inscription" onClick={() => setMenuOpen(false)} className="block">S&apos;inscrire</Link>
           <Link href="/action" onClick={() => setMenuOpen(false)} className="block">L&apos;action</Link>
+          <Link href="/live" onClick={() => setMenuOpen(false)} className="block">🔴 Suivi live</Link>
           <Link href="/lettre" onClick={() => setMenuOpen(false)} className="block">Modèle de lettre</Link>
           <Link href="/faq" onClick={() => setMenuOpen(false)} className="block">FAQ</Link>
           <Link href="/photos" onClick={() => setMenuOpen(false)} className="block">Photos</Link>
