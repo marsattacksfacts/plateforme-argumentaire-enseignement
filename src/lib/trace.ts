@@ -1335,7 +1335,7 @@ export const HALTES: { id: number; ville: string; type: string; lat: number; lng
   { id: 10, ville: "Namur", type: "etape_cle", lat: 50.464384, lng: 4.869055, kmTrace: 94.69 },
   { id: 11, ville: "Saint-Servais", type: "halte", lat: 50.483400, lng: 4.836747, kmTrace: 101.83 },
   { id: 12, ville: "Gembloux", type: "nuit", lat: 50.56086, lng: 4.69161, kmTrace: 116.06 },
-  { id: 13, ville: "Mont-St-Guibert", type: "halte", lat: 50.607369, lng: 4.660502, kmTrace: 122.81 },
+  { id: 13, ville: "Mont-St-Guibert", type: "halte", lat: 50.63883, lng: 4.60154, kmTrace: 122.81 },
   { id: 14, ville: "Court-St-Étienne", type: "halte", lat: 50.635149, lng: 4.614055, kmTrace: 128.09 },
   { id: 15, ville: "Ottignies", type: "halte", lat: 50.66995, lng: 4.56665, kmTrace: 136.44 },
   { id: 16, ville: "Rixensart", type: "halte", lat: 50.735861, lng: 4.474698, kmTrace: 147.81 },
