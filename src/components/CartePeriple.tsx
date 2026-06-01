@@ -221,6 +221,7 @@ export default function CartePeriple() {
             }
             const ahead = pathRef.current.getPointAtLength(Math.min(closestD + 10, pathLengthRef.current));
             const behind = pathRef.current.getPointAtLength(Math.max(closestD - 10, 0));
+            setProgress(closestD / pathLengthRef.current);
             let ang = Math.atan2(ahead.y - behind.y, ahead.x - behind.x) * (180 / Math.PI);
             if (Math.abs(ang) > 90) ang += 180;
             liveAngleRef.current = lerpAngle(liveAngleRef.current, ang, 0.3);
@@ -258,7 +259,6 @@ export default function CartePeriple() {
     ? projectPoint(livePos![0], livePos![1], minLat, maxLat, minLng, maxLng, dimensions.width, dimensions.height, padding)
     : currentPos;
   const displayAngle = isLiveActive ? liveAngle : currentAngle;
-  const liveProgress = isLiveActive ? 1 : progress;
 
   return (
     <div className="bg-[#F5F0E8] px-4 md:px-8 py-12">
@@ -288,7 +288,7 @@ export default function CartePeriple() {
           <svg width={dimensions.width} height={dimensions.height} viewBox={`0 0 ${dimensions.width} ${dimensions.height}`} className="block relative z-10" style={{ backgroundColor: "transparent" }}>
             <path ref={pathRef} d={pathD} fill="none" stroke="#C0440E" strokeWidth="2.5" strokeDasharray="8 6" strokeLinecap="round" opacity="0.5" />
             {pathLength > 0 && (
-              <path d={pathD} fill="none" stroke="#C0440E" strokeWidth="3" strokeLinecap="round" strokeDasharray={`${liveProgress * pathLength} ${pathLength}`} opacity="1" />
+              <path d={pathD} fill="none" stroke="#C0440E" strokeWidth="3" strokeLinecap="round" strokeDasharray={`${progress * pathLength} ${pathLength}`} opacity="1" />
             )}
             {HALTES_PRINCIPALES.map((h) => {
               const [px, py] = projectPoint(h.lat, h.lng, minLat, maxLat, minLng, maxLng, dimensions.width, dimensions.height, padding);
