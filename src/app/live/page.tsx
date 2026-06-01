@@ -205,12 +205,42 @@ export default function LivePage() {
 
         {/* Prochaine halte */}
         {prochaineHalte && (
-          <div className="bg-[#C0440E]/5 border border-[#C0440E]/20 p-6 text-center mb-10">
-            <p className="text-xs text-[#C0440E] uppercase tracking-widest mb-2">Prochaine halte</p>
-            <p className="font-serif text-2xl font-bold text-[#1C1917]">{prochaineHalte.ville}</p>
-            <p className="text-sm text-[#6B6459] mt-1">{kmRestant.toFixed(1)} km restants</p>
-            {tempsRestantMin > 0 && (
-              <p className="text-lg font-bold text-[#C0440E] mt-2">~{Math.round(tempsRestantMin)} min</p>
+          <div className={`p-6 text-center mb-10 border ${
+            kmRestant < 0.8
+              ? "bg-green-50 border-green-300"
+              : "bg-[#C0440E]/5 border-[#C0440E]/20"
+          }`}>
+            {kmRestant < 0.8 ? (
+              <>
+                <p className="text-xs text-green-700 uppercase tracking-widest mb-2">📍 Ils sont à la halte !</p>
+                <p className="font-serif text-2xl font-bold text-[#1C1917]">{prochaineHalte.ville}</p>
+                {/* Prochaine halte après celle-ci */}
+                {(() => {
+                  const nextHalte = HALTES.find(h => h.type !== "depart" && h.kmTrace > prochaineHalte!.kmTrace);
+                  if (!nextHalte) return null;
+                  const kmToNext = nextHalte.kmTrace - distParcourueKm;
+                  const minToNext = vitesseEstim > 0 ? (kmToNext / vitesseEstim) * 60 : 0;
+                  return (
+                    <div className="mt-3 pt-3 border-t border-green-200">
+                      <p className="text-xs text-green-700 uppercase tracking-widest mb-1">Prochaine halte</p>
+                      <p className="font-serif text-lg font-bold text-[#1C1917]">{nextHalte.ville}</p>
+                      <p className="text-sm text-[#6B6459] mt-1">{kmToNext.toFixed(1)} km restants</p>
+                      {minToNext > 0 && (
+                        <p className="text-lg font-bold text-[#C0440E] mt-1">~{Math.round(minToNext)} min</p>
+                      )}
+                    </div>
+                  );
+                })()}
+              </>
+            ) : (
+              <>
+                <p className="text-xs text-[#C0440E] uppercase tracking-widest mb-2">Prochaine halte</p>
+                <p className="font-serif text-2xl font-bold text-[#1C1917]">{prochaineHalte.ville}</p>
+                <p className="text-sm text-[#6B6459] mt-1">{kmRestant.toFixed(1)} km restants</p>
+                {tempsRestantMin > 0 && (
+                  <p className="text-lg font-bold text-[#C0440E] mt-2">~{Math.round(tempsRestantMin)} min</p>
+                )}
+              </>
             )}
           </div>
         )}
