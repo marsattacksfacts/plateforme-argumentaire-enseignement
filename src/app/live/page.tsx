@@ -226,7 +226,9 @@ export default function LivePage() {
                       <p className="font-serif text-lg font-bold text-[#1C1917]">{nextHalte.ville}</p>
                       <p className="text-sm text-[#6B6459] mt-1">{kmToNext.toFixed(1)} km restants</p>
                       {minToNext > 0 && (
-                        <p className="text-lg font-bold text-[#C0440E] mt-1">~{Math.round(minToNext)} min</p>
+                        <p className="text-lg font-bold text-[#C0440E] mt-1">
+                          ~{Math.round(minToNext)} min · Arrivée vers {new Date(Date.now() + minToNext * 60000).toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit" })}
+                        </p>
                       )}
                     </div>
                   );
@@ -238,7 +240,9 @@ export default function LivePage() {
                 <p className="font-serif text-2xl font-bold text-[#1C1917]">{prochaineHalte.ville}</p>
                 <p className="text-sm text-[#6B6459] mt-1">{kmRestant.toFixed(1)} km restants</p>
                 {tempsRestantMin > 0 && (
-                  <p className="text-lg font-bold text-[#C0440E] mt-2">~{Math.round(tempsRestantMin)} min</p>
+                  <p className="text-lg font-bold text-[#C0440E] mt-2">
+                    ~{Math.round(tempsRestantMin)} min · Arrivée vers {new Date(Date.now() + tempsRestantMin * 60000).toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit" })}
+                  </p>
                 )}
               </>
             )}
