@@ -79,27 +79,28 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 function ConfigPanel() {
-  const [config, setConfig] = useState<Record<string, boolean>>({});
+  const [config, setConfig] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     supabase.from("config").select("*").then(({ data }) => {
-      const map: Record<string, boolean> = {};
-      data?.forEach((r: { key: string; value: boolean }) => { map[r.key] = r.value; });
+      const map: Record<string, string> = {};
+      data?.forEach((r: { key: string; value: string | boolean }) => { map[r.key] = String(r.value); });
       setConfig(map);
     });
   }, []);
 
-  const toggle = async (key: string, value: boolean) => {
-    setConfig(prev => ({ ...prev, [key]: value }));
-    await supabase.from("config").upsert({ key, value });
+  const toggle = async (key: string, value: string | boolean) => {
+    const strValue = String(value);
+    setConfig(prev => ({ ...prev, [key]: strValue }));
+    await supabase.from("config").upsert({ key, value: strValue });
   };
 
   const closeAll = async () => {
     setSaving(true);
     for (const k of ['inscriptions_cycliste','inscriptions_halte','inscriptions_accueillant','inscriptions_coordinateur']) {
-      setConfig(prev => ({ ...prev, [k]: false }));
-      await supabase.from("config").upsert({ key: k, value: false });
+      setConfig(prev => ({ ...prev, [k]: "false" }));
+      await supabase.from("config").upsert({ key: k, value: "false" });
     }
     setSaving(false);
   };
@@ -107,8 +108,8 @@ function ConfigPanel() {
   const openAll = async () => {
     setSaving(true);
     for (const k of ['inscriptions_cycliste','inscriptions_halte','inscriptions_accueillant','inscriptions_coordinateur']) {
-      setConfig(prev => ({ ...prev, [k]: true }));
-      await supabase.from("config").upsert({ key: k, value: true });
+      setConfig(prev => ({ ...prev, [k]: "true" }));
+      await supabase.from("config").upsert({ key: k, value: "true" });
     }
     setSaving(false);
   };
@@ -124,9 +125,21 @@ function ConfigPanel() {
       ].map(({ key, label }) => (
         <label key={key} className="flex items-center justify-between p-3 border border-black/10 bg-white cursor-pointer">
           <span className="text-sm font-medium">{label}</span>
-          <input type="checkbox" checked={config[key] !== false} onChange={e => toggle(key, e.target.checked)} className="w-5 h-5 accent-[#C0440E]" />
+          <input type="checkbox" checked={config[key] === "true"} onChange={e => toggle(key, e.target.checked)} className="w-5 h-5 accent-[#C0440E]" />
         </label>
       ))}
+
+      <div className="mt-6 pt-6 border-t border-black/10">
+        <label className="flex items-center justify-between p-3 border border-black/10 bg-white">
+          <span className="text-sm font-medium">✉️ Nombre de lettres récoltées</span>
+          <input
+            type="number"
+            value={config["nb_lettres"] || 0}
+            onChange={e => toggle("nb_lettres", e.target.value)}
+            className="w-20 border border-black/15 px-2 py-1 text-sm text-right"
+          />
+        </label>
+      </div>
       <div className="flex gap-3 mt-4">
         <button onClick={closeAll} disabled={saving} className="text-xs bg-[#1C1917] text-white px-4 py-2 hover:bg-black/80 disabled:opacity-50">Tout fermer</button>
         <button onClick={openAll} disabled={saving} className="text-xs bg-[#C0440E] text-white px-4 py-2 hover:bg-[#8A2E06] disabled:opacity-50">Tout ouvrir</button>
