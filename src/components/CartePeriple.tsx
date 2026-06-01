@@ -197,6 +197,7 @@ export default function CartePeriple() {
     const poll = async () => {
       const { data } = await supabase.from("locations").select("lat, lng, created_at").order("created_at", { ascending: false }).limit(1);
       if (data?.length) {
+        console.log("Dernière position:", data[0].lat, data[0].lng, "âge:", (Date.now() - new Date(data[0].created_at).getTime()) / 1000, "secondes");
         const age = Date.now() - new Date(data[0].created_at).getTime();
         if (age < 5 * 60 * 1000) {
           const [lat, lng] = findClosestPointOnTrace(data[0].lat, data[0].lng, TRACE);
@@ -220,6 +221,7 @@ export default function CartePeriple() {
           return;
         }
       }
+      
       setLivePos(null); // fallback
     };
 
