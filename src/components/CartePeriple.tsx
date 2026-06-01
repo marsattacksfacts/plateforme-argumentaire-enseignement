@@ -202,7 +202,7 @@ export default function CartePeriple() {
 
     const poll = async () => {
       console.log("📡 Polling...");
-      const { data } = await supabase.from("locations").select("lat, lng, created_at").order("created_at", { ascending: false }).limit(1);
+      const { data, error } = await supabase.from("locations").select("lat, lng, created_at").order("created_at", { ascending: false }).limit(1);
       console.log("📡 Poll result:", data, error);
       if (data?.length) {
         console.log("Dernière position:", data[0].lat, data[0].lng, "âge:", (Date.now() - new Date(data[0].created_at).getTime()) / 1000, "secondes");
