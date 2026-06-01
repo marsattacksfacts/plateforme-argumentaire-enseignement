@@ -2,48 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { TRACE, HALTES, TRACE_J1_END, TRACE_J2_END } from "@/lib/trace";
+import { TRACE, HALTES, findClosestPointOnTrace } from "@/lib/trace";
 
 const supabase = createClient();
 
-
-// ── HALTES ─────────────────────────────────────────────────────────────────
-
-const HALTES_PRINCIPALES_RAW = [
-  { label: "Verviers", type: "Départ", lat: 50.592580, lng: 5.861104, variant: "depart" as const },
-  { label: "Herve", type: "Halte", lat: 50.614, lng: 5.793, variant: "simple" as const },
-  { label: "Soumagne", type: "Halte", lat: 50.622, lng: 5.745, variant: "simple" as const },
-  { label: "Chênée", type: "Halte", lat: 50.609954, lng: 5.616538, variant: "simple" as const },
-  { label: "Liège", type: "Étape clé", lat: 50.635361, lng: 5.568411, variant: "etape" as const },
-  { label: "Seraing", type: "Halte", lat: 50.603, lng: 5.507, variant: "simple" as const },
-  { label: "Huy", type: "Nuit J1", lat: 50.522498, lng: 5.241208, variant: "nuit" as const },
-  { label: "Andenne", type: "Halte", lat: 50.498974, lng: 5.120757, variant: "simple" as const },
-  { label: "Jambes", type: "Halte", lat: 50.469450, lng: 5.003953, variant: "simple" as const },
-  { label: "Namur", type: "Étape clé", lat: 50.465499, lng: 4.893198, variant: "etape" as const },
-  { label: "St-Servais", type: "Halte", lat: 50.483184, lng: 4.836371, variant: "simple" as const },
-  { label: "Gembloux", type: "Nuit J2", lat: 50.559751, lng: 4.694289, variant: "nuit" as const },
-  { label: "Mont-St-Guib.", type: "Halte", lat: 50.607445, lng: 4.660519, variant: "simple" as const },
-  { label: "Court-St-Ét.", type: "Halte", lat: 50.635188, lng: 4.613860, variant: "simple" as const },
-  { label: "Ottignies", type: "Halte", lat: 50.681454, lng: 4.560817, variant: "simple" as const },
-  { label: "Rixensart", type: "Halte", lat: 50.735901, lng: 4.474639, variant: "simple" as const },
-  { label: "Etterbeek", type: "Halte", lat: 50.824274, lng: 4.381564, variant: "simple" as const },
-  { label: "Bruxelles", type: "Arrivée", lat: 50.845200, lng: 4.370142, variant: "arrivee" as const },
-];
-
-function findClosestPointOnTrace(lat: number, lng: number, trace: [number, number][]): [number, number] {
-  let best: [number, number] = trace[0];
-  let bestDist = Infinity;
-  for (const [tlat, tlng] of trace) {
-    const d = (tlat - lat) ** 2 + (tlng - lng) ** 2;
-    if (d < bestDist) { bestDist = d; best = [tlat, tlng]; }
-  }
-  return best;
-}
-
-const HALTES_PRINCIPALES = HALTES_PRINCIPALES_RAW.map(h => {
-  const [lat, lng] = findClosestPointOnTrace(h.lat, h.lng, TRACE);
-  return { ...h, lat, lng };
-});
 
 // ── CONFIG ─────────────────────────────────────────────────────────────────
 
@@ -238,26 +200,26 @@ export default function CartePeriple() {
             {pathLength > 0 && (
               <path d={pathD} fill="none" stroke="#C0440E" strokeWidth="3" strokeLinecap="round" strokeDasharray={`${progress * pathLength} ${pathLength}`} opacity="1" />
             )}
-            {HALTES_PRINCIPALES.map((h) => {
+            {HALTES.map((h) => {
               const [px, py] = projectPoint(h.lat, h.lng, minLat, maxLat, minLng, maxLng, dimensions.width, dimensions.height, padding);
               const isRight = px < dimensions.width * 0.55;
               const lx = isRight ? px + labelOffset : px - labelOffset;
               const ta = isRight ? "start" : "end";
-              const isSimple = h.variant === "simple";
-              const isNuit = h.variant === "nuit";
-              const isArrivee = h.variant === "arrivee";
-              if (isSimple) return <g key={h.label}><circle cx={px} cy={py} r="3" fill="#1C1917" opacity="0.45" /><text x={lx} y={py + 4} textAnchor={ta} fill="#6B6459" fontFamily="Space Grotesk, sans-serif" fontSize="8">{h.label}</text></g>;
+              const isSimple = h.type === "halte";
+              const isNuit = h.type === "nuit";
+              const isArrivee = h.type === "arrivee";
+              if (isSimple) return <g key={h.ville}><circle cx={px} cy={py} r="3" fill="#1C1917" opacity="0.45" /><text x={lx} y={py + 4} textAnchor={ta} fill="#6B6459" fontFamily="Space Grotesk, sans-serif" fontSize="8">{h.ville}</text></g>;
               const r = isNuit || isArrivee ? 7 : 5;
               const fill = isNuit ? "#E8B43A" : isArrivee ? "#1C1917" : "#C0440E";
               const stroke = isNuit ? "#1C1917" : "#FBF6ED";
               return (
-                <g key={h.label}>
+                <g key={h.ville}>
                   <line x1={px} y1={py} x2={isRight ? px + labelOffset - 5 : px - labelOffset + 5} y2={py - labelOffset * 0.5} stroke="#6B6459" strokeWidth="0.5" strokeDasharray="2 2" opacity="0.4" />
                   <circle cx={px} cy={py} r={r} fill={fill} stroke={stroke} strokeWidth="2" />
                   {isNuit && <text x={px} y={py + 0.5} textAnchor="middle" fontSize="7" fill="#1C1917" fontWeight="bold">🌙</text>}
-                  {h.variant === "depart" && <text x={px} y={py + 0.5} textAnchor="middle" fontSize="7" fill="#FBF6ED" fontWeight="bold">D</text>}
+                  {h.type === "depart" && <text x={px} y={py + 0.5} textAnchor="middle" fontSize="7" fill="#FBF6ED" fontWeight="bold">D</text>}
                   {isArrivee && <text x={px} y={py + 0.5} textAnchor="middle" fontSize="7" fill="#FBF6ED" fontWeight="bold">A</text>}
-                  <text x={lx} y={py - labelOffset * 0.5 + 5} textAnchor={ta} fill="#1C1917" fontFamily="Space Grotesk, sans-serif" fontSize="13" fontWeight="bold">{h.label}</text>
+                  <text x={lx} y={py - labelOffset * 0.5 + 5} textAnchor={ta} fill="#1C1917" fontFamily="Space Grotesk, sans-serif" fontSize="13" fontWeight="bold">{h.ville}</text>
                   <text x={lx} y={py - labelOffset * 0.5 + 19} textAnchor={ta} fill="#6B6459" fontFamily="Space Grotesk, sans-serif" fontSize="9" letterSpacing="0.05em">{h.type}</text>
                 </g>
               );

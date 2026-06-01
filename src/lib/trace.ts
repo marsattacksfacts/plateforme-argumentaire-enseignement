@@ -7,6 +7,12 @@
 export const TRACE_J1_END = 516;
 export const TRACE_J2_END = 914;
 
+export const KM_BORNES: Record<1|2|3, [number,number]> = {
+  1: [0,    65],
+  2: [63,  118],
+  3: [115, 165],
+};
+
 export const TRACE: [number, number][] = [
   [50.592580, 5.861104],
   [50.592383, 5.860131],
@@ -1316,13 +1322,10 @@ export const TRACE: [number, number][] = [
   [50.845742, 4.370492]
 ];
 
-export const HALTES: {
-  id: number; ville: string; type: string;
-  lat: number; lng: number; kmTrace: number;
-}[] = [
+export const HALTES: { id: number; ville: string; type: string; lat: number; lng: number; kmTrace: number; }[] = [
   { id: 1, ville: "Verviers", type: "depart", lat: 50.592580, lng: 5.861104, kmTrace: 0.00 },
   { id: 2, ville: "Herve", type: "halte", lat: 50.630837, lng: 5.802327, kmTrace: 7.43 },
-  { id: 3, ville: "Soumagne", type: "halte", lat: 50.629355, lng: 5.738546, kmTrace: 13.59 },
+  { id: 3, ville: "Soumagne", type: "halte", lat: 50.629144080926906, lng: 5.738836004872845, kmTrace: 13.59 }, 
   { id: 4, ville: "Chênée", type: "halte", lat: 50.615398, lng: 5.621711, kmTrace: 24.02 },
   { id: 5, ville: "Liège", type: "etape_cle", lat: 50.635577, lng: 5.567832, kmTrace: 30.13 },
   { id: 6, ville: "Seraing", type: "halte", lat: 50.608488, lng: 5.504781, kmTrace: 37.70 },
@@ -1339,3 +1342,17 @@ export const HALTES: {
   { id: 17, ville: "Etterbeek", type: "halte", lat: 50.824274, lng: 4.381564, kmTrace: 160.42 },
   { id: 18, ville: "Bruxelles", type: "arrivee", lat: 50.845159, lng: 4.370118, kmTrace: 163.31 },
 ];
+
+export function findClosestPointOnTrace(
+  lat: number,
+  lng: number,
+  trace: [number, number][]
+): [number, number] {
+  let best: [number, number] = trace[0];
+  let bestDist = Infinity;
+  for (const [tlat, tlng] of trace) {
+    const d = (tlat - lat) ** 2 + (tlng - lng) ** 2;
+    if (d < bestDist) { bestDist = d; best = [tlat, tlng]; }
+  }
+  return best;
+}
