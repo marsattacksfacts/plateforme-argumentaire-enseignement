@@ -92,9 +92,9 @@ export default function LivePage() {
 
   useEffect(() => {
     if (locations.length > 0 && lastIdxRef.current === 0) {
-      // Initialisation avec le premier point
-      const first = locations[0];
-      const globalIdx = closestTraceIdx(first.lat, first.lng);
+      // Prendre le point le plus récent (dernier de la liste)
+      const mostRecent = locations[locations.length - 1];
+      const globalIdx = closestTraceIdx(mostRecent.lat, mostRecent.lng);
       lastIdxRef.current = globalIdx;
     }
   }, [locations]);
