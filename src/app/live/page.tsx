@@ -95,17 +95,17 @@ export default function LivePage() {
     return () => clearInterval(interval);
   }, []);
 
-
-  if (locations.length < 2) {
-    return <main className="min-h-screen bg-[#F5F0E8] flex items-center justify-center"><p className="text-[#6B6459]">En attente des premières positions…</p></main>;
-  }
-
   useEffect(() => {
     if (locations.length === 1 && lastIdxRef.current === 0) {
       const firstIdx = closestTraceIdx(locations[0].lat, locations[0].lng);
       lastIdxRef.current = firstIdx;
     }
   }, [locations]);
+
+  if (locations.length < 2) {
+    return <main className="min-h-screen bg-[#F5F0E8] flex items-center justify-center"><p className="text-[#6B6459]">En attente des premières positions…</p></main>;
+  }
+
 
   // ── Calculs dérivés ──────────────────────────────────────────────────────
   const last = locations[locations.length - 1];
