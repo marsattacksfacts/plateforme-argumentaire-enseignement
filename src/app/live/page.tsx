@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { TRACE, HALTES } from "@/lib/trace";
@@ -29,6 +29,17 @@ function cumulKmAtIdx(idx: number): number {
   return d / 1000;
 }
 
+function closestTraceIdxNear(lat: number, lng: number, estimatedKm: number): number {
+  let best = 0, bestD = Infinity;
+  TRACE.forEach(([tlat, tlng], i) => {
+    const km = cumulKmAtIdx(i);
+    if (km < estimatedKm - 5 || km > estimatedKm + 5) return;
+    const d = (tlat - lat) ** 2 + (tlng - lng) ** 2;
+    if (d < bestD) { bestD = d; best = i; }
+  });
+  return best;
+}
+
 function computeRolling(locs: { lat: number; lng: number; created_at: string }[]) {
   let totalSec = 0, totalKm = 0;
   for (let i = 1; i < locs.length; i++) {
@@ -55,6 +66,7 @@ export default function LivePage() {
   const [locations, setLocations] = useState<{ lat: number; lng: number; created_at: string }[]>([]);
   const [autoJour, setAutoJour] = useState(true);
   const [carteJour, setCarteJour] = useState<1 | 2 | 3>(1);
+  const lastIdxRef = useRef(0);
 
   useEffect(() => {
     const load = async () => {
@@ -72,7 +84,10 @@ export default function LivePage() {
 
   // ── Calculs dérivés ──────────────────────────────────────────────────────
   const last = locations[locations.length - 1];
-  const lastIdx = closestTraceIdx(last.lat, last.lng);
+  const lastIdx = locations.length > 2
+    ? closestTraceIdxNear(last.lat, last.lng, cumulKmAtIdx(lastIdxRef.current))
+    : closestTraceIdx(last.lat, last.lng);
+  lastIdxRef.current = lastIdx;
   const snappedLat = TRACE[lastIdx][0];
   const snappedLng = TRACE[lastIdx][1];
   const distParcourueKm = cumulKmAtIdx(lastIdx);
