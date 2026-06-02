@@ -163,8 +163,17 @@ export default function LivePage() {
     return best;
   };
 
-  const prochaineHalte = findNextHalteByProximity(last.lat, last.lng);
-  const kmRestant = prochaineHalte ? distM(last.lat, last.lng, prochaineHalte.lat, prochaineHalte.lng) / 1000 : 0;
+  // Trouver la prochaine halte en utilisant l'index sur la trace
+  const currentTraceIdx = closestTraceIdx(last.lat, last.lng);
+  const currentKmOnTrace = cumulKmAtIdx(currentTraceIdx);
+
+  // Prochaine halte (celle dont le kmTrace est strictement supérieur à la position actuelle sur la trace)
+  const prochaineHalte = HALTES.find(h => h.kmTrace > currentKmOnTrace && h.type !== "depart") ?? null;
+
+  // Distance restante le long de la trace (pas à vol d'oiseau)
+  const kmRestant = prochaineHalte ? prochaineHalte.kmTrace - currentKmOnTrace : 0;
+
+  // Temps estimé
   const tempsRestantMin = prochaineHalte && vitesseEstim > 0 ? (kmRestant / vitesseEstim) * 60 : 0;
 
   // Jour actuel (basé uniquement sur la distance)
