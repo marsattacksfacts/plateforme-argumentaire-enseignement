@@ -89,12 +89,6 @@ export default function LivePage() {
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    if (locations.length === 1 && lastIdxRef.current === 0) {
-      const firstIdx = closestTraceIdx(locations[0].lat, locations[0].lng);
-      lastIdxRef.current = firstIdx;
-    }
-  }, [locations]);
 
   useEffect(() => {
     if (locations.length > 0 && lastIdxRef.current === 0) {
