@@ -78,6 +78,7 @@ export default function LivePage() {
     return () => clearInterval(interval);
   }, []);
 
+
   if (locations.length < 2) {
     return <main className="min-h-screen bg-[#F5F0E8] flex items-center justify-center"><p className="text-[#6B6459]">En attente des premières positions…</p></main>;
   }
@@ -111,9 +112,8 @@ export default function LivePage() {
   const tempsRestantMin = prochaineHalte && vitesseEstim > 0 ? (kmRestant / vitesseEstim) * 60 : 0;
 
   const jourActuel: 1 | 2 | 3 = distParcourueKm < 65 ? 1 : distParcourueKm < 118 ? 2 : 3;
-  const displayJour = autoJour ? jourActuel : carteJour;
 
-  useEffect(() => { if (autoJour) setCarteJour(jourActuel); }, [distParcourueKm, autoJour]);
+  const displayJour = autoJour ? jourActuel : carteJour;
 
   const [kmMin, kmMax] = kmBornes[displayJour];
   const traceJourIndices: number[] = [];
