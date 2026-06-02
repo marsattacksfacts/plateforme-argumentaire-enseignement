@@ -132,9 +132,39 @@ export default function LivePage() {
     ? (vitesseTroncon > 0 ? vitesseTroncon : vitesseGenerale || 12) 
     : (vitesseGenerale > 0 ? vitesseGenerale : 12);
 
-  // Prochaine halte
-  const prochaineHalte = HALTES.find(h => h.type !== "depart" && h.kmTrace > distParcourueKm) ?? null;
-  const kmRestant = prochaineHalte ? Math.max(0, prochaineHalte.kmTrace - distParcourueKm) : 0;
+  // Trouver la prochaine halte par proximité géographique (ignorer les haltes déjà dépassées)
+  const findNextHalteByProximity = (currentLat: number, currentLng: number) => {
+    // 1) Trouver l'index de la dernière halte réellement passée (celle dont on est à moins de 500m)
+    let lastPassedIndex = -1;
+    for (let i = 0; i < HALTES.length; i++) {
+      const h = HALTES[i];
+      const distToHalte = distM(currentLat, currentLng, h.lat, h.lng);
+      if (distToHalte < 500) { // 500m = considérée comme "atteinte"
+        lastPassedIndex = i;
+      }
+    }
+    
+    // 2) La prochaine halte est celle juste après la dernière atteinte
+    if (lastPassedIndex >= 0 && lastPassedIndex + 1 < HALTES.length) {
+      return HALTES[lastPassedIndex + 1];
+    }
+    
+    // 3) Fallback: trouver la halte la plus proche en distance, sauf si elle est déjà dans le passé
+    let best = null;
+    let bestDist = Infinity;
+    for (const h of HALTES) {
+      if (h.type === "depart" || h.type === "arrivee") continue;
+      const dist = distM(currentLat, currentLng, h.lat, h.lng);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = h;
+      }
+    }
+    return best;
+  };
+
+  const prochaineHalte = findNextHalteByProximity(last.lat, last.lng);
+  const kmRestant = prochaineHalte ? distM(last.lat, last.lng, prochaineHalte.lat, prochaineHalte.lng) / 1000 : 0;
   const tempsRestantMin = prochaineHalte && vitesseEstim > 0 ? (kmRestant / vitesseEstim) * 60 : 0;
 
   // Jour actuel (basé uniquement sur la distance)
