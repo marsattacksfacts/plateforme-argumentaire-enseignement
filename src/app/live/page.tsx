@@ -106,10 +106,23 @@ export default function LivePage() {
 
   // ── Calculs dérivés ──────────────────────────────────────────────────────
   const last = locations[locations.length - 1];
-  const lastIdx = locations.length > 2
-    ? closestTraceIdxNear(last.lat, last.lng, cumulKmAtIdx(lastIdxRef.current))
-    : closestTraceIdx(last.lat, last.lng);
+  let lastIdx: number;
+
+  // Cas particulier : un seul point (ne devrait pas arriver car locations.length >= 2)
+  if (locations.length === 1) {
+    lastIdx = closestTraceIdx(last.lat, last.lng);
+  } else {
+    const prevKm = cumulKmAtIdx(lastIdxRef.current);
+    let candidate = closestTraceIdxNear(last.lat, last.lng, prevKm);
+    // Vérifie si le point snapé est trop loin (> 5 km) → recalcule globalement
+    const distanceToCandidate = distM(last.lat, last.lng, TRACE[candidate][0], TRACE[candidate][1]);
+    if (distanceToCandidate > 5000) {
+      candidate = closestTraceIdx(last.lat, last.lng);
+    }
+    lastIdx = candidate;
+  }
   lastIdxRef.current = lastIdx;
+
   const snappedLat = TRACE[lastIdx][0];
   const snappedLng = TRACE[lastIdx][1];
   const distParcourueKm = cumulKmAtIdx(lastIdx);
