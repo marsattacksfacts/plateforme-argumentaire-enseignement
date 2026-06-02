@@ -30,7 +30,7 @@ function cumulKmAtIdx(idx: number): number {
 }
 
 function closestTraceIdxNear(lat: number, lng: number, estimatedKm: number): number {
-  // 1) Recherche restreinte
+  // Recherche locale dans ±5 km
   let best = 0, bestD = Infinity;
   let found = false;
   for (let i = 0; i < TRACE.length; i++) {
@@ -38,20 +38,14 @@ function closestTraceIdxNear(lat: number, lng: number, estimatedKm: number): num
     if (km >= estimatedKm - 5 && km <= estimatedKm + 5) {
       found = true;
       const d = (TRACE[i][0] - lat) ** 2 + (TRACE[i][1] - lng) ** 2;
-      if (d < bestD) {
-        bestD = d;
-        best = i;
-      }
+      if (d < bestD) { bestD = d; best = i; }
     }
   }
-  // 2) Fallback : recherche globale
+  // Fallback : recherche globale si aucun point dans la fenêtre
   if (!found) {
     for (let i = 0; i < TRACE.length; i++) {
       const d = (TRACE[i][0] - lat) ** 2 + (TRACE[i][1] - lng) ** 2;
-      if (d < bestD) {
-        bestD = d;
-        best = i;
-      }
+      if (d < bestD) { bestD = d; best = i; }
     }
   }
   return best;
@@ -99,6 +93,15 @@ export default function LivePage() {
     if (locations.length === 1 && lastIdxRef.current === 0) {
       const firstIdx = closestTraceIdx(locations[0].lat, locations[0].lng);
       lastIdxRef.current = firstIdx;
+    }
+  }, [locations]);
+
+  useEffect(() => {
+    if (locations.length > 0 && lastIdxRef.current === 0) {
+      // Initialisation avec le premier point
+      const first = locations[0];
+      const globalIdx = closestTraceIdx(first.lat, first.lng);
+      lastIdxRef.current = globalIdx;
     }
   }, [locations]);
 
