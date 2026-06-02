@@ -30,13 +30,30 @@ function cumulKmAtIdx(idx: number): number {
 }
 
 function closestTraceIdxNear(lat: number, lng: number, estimatedKm: number): number {
+  // 1) Recherche restreinte
   let best = 0, bestD = Infinity;
-  TRACE.forEach(([tlat, tlng], i) => {
+  let found = false;
+  for (let i = 0; i < TRACE.length; i++) {
     const km = cumulKmAtIdx(i);
-    if (km < estimatedKm - 5 || km > estimatedKm + 5) return;
-    const d = (tlat - lat) ** 2 + (tlng - lng) ** 2;
-    if (d < bestD) { bestD = d; best = i; }
-  });
+    if (km >= estimatedKm - 5 && km <= estimatedKm + 5) {
+      found = true;
+      const d = (TRACE[i][0] - lat) ** 2 + (TRACE[i][1] - lng) ** 2;
+      if (d < bestD) {
+        bestD = d;
+        best = i;
+      }
+    }
+  }
+  // 2) Fallback : recherche globale
+  if (!found) {
+    for (let i = 0; i < TRACE.length; i++) {
+      const d = (TRACE[i][0] - lat) ** 2 + (TRACE[i][1] - lng) ** 2;
+      if (d < bestD) {
+        bestD = d;
+        best = i;
+      }
+    }
+  }
   return best;
 }
 
