@@ -78,12 +78,27 @@ export default function LivePage() {
   useEffect(() => {
     console.log("🔄 LivePage useEffect LOAD"); // ← AJOUTER
     const load = async () => {
-      console.log("📡 Live: fetching locations..."); // ← AJOUTER
-      const { data } = await supabase.from("locations")
-        .select("lat, lng, created_at")
-        .order("created_at", { ascending: true })
-        .limit(5000);      console.log("📡 Live: got", data?.length, "locations"); // ← AJOUTER
-      setLocations(data || []);
+      console.log("📡 Live: fetching locations...");
+      let allData: { lat: number; lng: number; created_at: string }[] = [];
+      let from = 0;
+      const pageSize = 1000;
+      let hasMore = true;
+      while (hasMore) {
+        const { data, error } = await supabase.from("locations")
+          .select("lat, lng, created_at")
+          .order("created_at", { ascending: true })
+          .range(from, from + pageSize - 1);
+        if (error) { console.error(error); break; }
+        if (data && data.length > 0) {
+          allData = [...allData, ...data];
+          from += pageSize;
+          if (data.length < pageSize) hasMore = false;
+        } else {
+          hasMore = false;
+        }
+      }
+      console.log("📡 Live: got", allData.length, "locations");
+      setLocations(allData);
     };
     load();
     const interval = setInterval(() => {
