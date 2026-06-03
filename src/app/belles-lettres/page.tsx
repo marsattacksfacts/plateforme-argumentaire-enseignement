@@ -64,23 +64,23 @@ export default function BellesLettresPage() {
           LETTRES.length === 0 ? (
             <p className="text-[#6B6459]">Aucune lettre pour le moment.</p>
           ) : (
-            <div className="space-y-10">
+            <div className="space-y-12">
               {grouped.map((group, gi) => (
                 <div key={gi}>
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="font-serif text-2xl font-black text-[#C0440E]">#{group.prefix}</span>
+                    <span className="font-serif text-2xl font-black text-[#C0440E]">Lettre #{group.prefix}</span>
                     <div className="h-px flex-1 bg-[#C0440E]/20" />
                   </div>
                   {group.files.length === 1 ? (
                     <a
                       href={`/lettres/${group.files[0]}`}
                       target="_blank"
-                      className="block border-2 border-[#D4C8B8] hover:border-[#C0440E] transition-colors bg-[#FBF6ED] shadow-sm hover:shadow-md max-w-md"
+                      className="block border-2 border-[#D4C8B8] hover:border-[#C0440E] transition-colors bg-[#FBF6ED] shadow-sm hover:shadow-md"
                     >
-                      <img src={`/lettres/${group.files[0]}`} alt={`Lettre ${group.prefix}`} className="w-full h-80 object-contain p-4" />
+                      <img src={`/lettres/${group.files[0]}`} alt={`Lettre ${group.prefix}`} className="w-full max-h-[600px] object-contain p-4 cursor-zoom-in" />
                     </a>
                   ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {group.files.map((f, i) => (
                         <a
                           key={i}
@@ -88,8 +88,8 @@ export default function BellesLettresPage() {
                           target="_blank"
                           className="block border-2 border-[#D4C8B8] hover:border-[#C0440E] transition-colors bg-[#FBF6ED] shadow-sm hover:shadow-md"
                         >
-                          <img src={`/lettres/${f}`} alt={`${group.prefix} page ${i + 1}`} className="w-full h-52 object-contain p-2" />
-                          <p className="text-[10px] text-center text-[#6B6459] pb-2">Page {i + 1}</p>
+                          <img src={`/lettres/${f}`} alt={`Lettre ${group.prefix} page ${i + 1}`} className="w-full max-h-[500px] object-contain p-3 cursor-zoom-in" />
+                          <p className="text-xs text-center text-[#6B6459] pb-2 font-medium">Page {i + 1}</p>
                         </a>
                       ))}
                     </div>
