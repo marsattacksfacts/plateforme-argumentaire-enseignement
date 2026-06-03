@@ -122,7 +122,8 @@ export default function LivePage() {
   const distParcourueKm = cumulKmAtIdx(lastIdx);
 
   const { totalSec, totalKm } = computeRolling(locations);
-  const vitesseGenerale = totalSec > 0 ? totalKm / (totalSec / 3600) : 0;
+  const tempsTotalHeures = (new Date(last.created_at).getTime() - new Date(locations[0].created_at).getTime()) / 3600000;
+  const vitesseGenerale = tempsTotalHeures > 0 ? distParcourueKm / tempsTotalHeures : 0;
 
   // Trouver le tronçon actuel
   let idxHalteDepart = 0;
