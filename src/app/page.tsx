@@ -62,7 +62,7 @@ export default function Home() {
 
       {menuOpen && (
         <div className="fixed top-16 left-0 right-0 z-40 bg-[#F5F0E8] border-b border-black/10 px-6 py-6 space-y-4 text-sm font-medium shadow-lg">
-          <Link href="/inscription" onClick={() => setMenuOpen(false)} className="block">S&apos;inscrire</Link>
+          <Link href="/belles-lettres" onClick={() => setMenuOpen(false)} className="block">De belles lettres</Link>
           <Link href="/action" onClick={() => setMenuOpen(false)} className="block">L&apos;action</Link>
           <a href="#parcours" onClick={() => setMenuOpen(false)} className="block">Parcours</a>
           <Link href="/live" onClick={() => setMenuOpen(false)} className="block">🔴 Suivi live</Link>
