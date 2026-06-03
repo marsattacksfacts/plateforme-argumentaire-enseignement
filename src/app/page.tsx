@@ -77,7 +77,7 @@ export default function Home() {
       <section className="pt-20 pb-8 px-4 md:px-8 max-w-5xl mx-auto">
         <div className="md:flex md:items-start md:gap-8 mb-10">
           <div className="flex-1">
-            <h1 className="font-serif text-5xl md:text-7xl font-black leading-[1.05] mb-4">Facteurs<br />à <em className="italic text-[#C0440E]">bicyclette</em></h1>
+            <h1 className="font-serif text-5xl md:text-7xl font-black leading-[1.05] mb-4">Facteur·ices<br />à <em className="italic text-[#C0440E]">bicyclette</em></h1>
             <p className="font-serif italic text-lg md:text-xl text-[#6B6459]">Périple épiscolaire à travers la Wallonie</p>
           </div>
           <div className="mt-6 md:mt-2 md:text-right md:min-w-[180px]">
