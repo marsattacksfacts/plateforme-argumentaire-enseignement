@@ -115,8 +115,8 @@ export default function Home() {
             <img
               src="/lettres/tas-de-lettres.jpg"
               alt="Les lettres récoltées"
-              className="w-full max-w-md border-4 border-white/20 shadow-lg object-cover"
-              style={{ maxHeight: "350px" }}
+              className="w-full max-w-md border-4 border-white/20 shadow-lg object-contain"
+              style={{ maxHeight: "450px" }}
             />
           </div>
         </div>
