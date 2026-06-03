@@ -79,8 +79,10 @@ export default function LivePage() {
     console.log("🔄 LivePage useEffect LOAD"); // ← AJOUTER
     const load = async () => {
       console.log("📡 Live: fetching locations..."); // ← AJOUTER
-      const { data } = await supabase.from("locations").select("lat, lng, created_at").order("created_at", { ascending: true });
-      console.log("📡 Live: got", data?.length, "locations"); // ← AJOUTER
+      const { data } = await supabase.from("locations")
+        .select("lat, lng, created_at")
+        .order("created_at", { ascending: true })
+        .limit(5000);      console.log("📡 Live: got", data?.length, "locations"); // ← AJOUTER
       setLocations(data || []);
     };
     load();
