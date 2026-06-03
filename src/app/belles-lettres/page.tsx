@@ -16,21 +16,20 @@ const VIDEOS_LETTRES = [
 
 function groupByPrefix(files: string[]) {
   const groups: { prefix: string; files: string[] }[] = [];
-  const seen = new Set<string>();
+  const prefixesSeen = new Set<string>();
 
   for (const f of files) {
     const match = f.match(/^(\d+)_/);
     const prefix = match ? match[1] : f.replace(/\.[^.]+$/, "");
 
-    if (match && seen.has(prefix)) continue; // déjà dans un groupe
+    if (prefixesSeen.has(prefix)) continue; // déjà traité
+    prefixesSeen.add(prefix);
 
     if (match) {
       const siblings = files.filter(x => x.startsWith(prefix + "_"));
       groups.push({ prefix, files: siblings });
-      siblings.forEach(x => seen.add(x));
     } else {
-      groups.push({ prefix: f, files: [f] });
-      seen.add(f);
+      groups.push({ prefix, files: [f] });
     }
   }
   return groups;
