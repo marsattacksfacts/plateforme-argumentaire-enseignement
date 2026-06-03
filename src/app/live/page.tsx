@@ -70,23 +70,28 @@ const kmBornes: Record<1 | 2 | 3, [number, number]> = {
 // ── PAGE ───────────────────────────────────────────────────────────────────
 
 export default function LivePage() {
+  console.log("🔵 LivePage RENDER");
   const [locations, setLocations] = useState<{ lat: number; lng: number; created_at: string }[]>([]);
   const [autoJour, setAutoJour] = useState(true);
   const [carteJour, setCarteJour] = useState<1 | 2 | 3>(1);
 
-  // Chargement des données
   useEffect(() => {
+    console.log("🔄 LivePage useEffect LOAD"); // ← AJOUTER
     const load = async () => {
-      const { data } = await supabase
-        .from("locations")
-        .select("lat, lng, created_at")
-        .order("created_at", { ascending: true });
+      console.log("📡 Live: fetching locations..."); // ← AJOUTER
+      const { data } = await supabase.from("locations").select("lat, lng, created_at").order("created_at", { ascending: true });
+      console.log("📡 Live: got", data?.length, "locations"); // ← AJOUTER
       setLocations(data || []);
     };
-    
     load();
-    const interval = setInterval(load, 15000);
-    return () => clearInterval(interval);
+    const interval = setInterval(() => {
+      console.log("⏰ Live: interval tick"); // ← AJOUTER
+      load();
+    }, 15000);
+    return () => {
+      console.log("🛑 Live: cleanup interval"); // ← AJOUTER
+      clearInterval(interval);
+    };
   }, []);
 
   // Attente des premières données
