@@ -55,7 +55,6 @@ export default function Home() {
           <p className="text-xs text-[#6B6459] italic">Périple épiscolaire · 2026</p>
         </Link>
         <div className="flex items-center gap-4">
-          <Link href="/inscription" className="hidden sm:inline bg-[#C0440E] text-white text-sm font-medium px-4 py-2 hover:bg-[#8A2E06] transition-colors">S&apos;inscrire</Link>
           <button onClick={() => setMenuOpen(!menuOpen)} className="text-[#1C1917] text-2xl leading-none">&equiv;</button>
         </div>
       </nav>
@@ -75,51 +74,52 @@ export default function Home() {
       )}
 
       {/* HERO */}
-      <section className="pt-28 pb-16 px-4 md:px-8 max-w-5xl mx-auto">
-        <h1 className="font-serif text-5xl md:text-7xl font-black leading-[1.05] mb-4">Facteurs<br />à <em className="italic text-[#C0440E]">bicyclette</em></h1>
-        <p className="font-serif italic text-lg md:text-xl text-[#6B6459] mb-8">Périple épiscolaire à travers la Wallonie</p>
-
-        <div className="flex flex-wrap items-center gap-3 mb-10">
-          <span className="inline-block text-[10px] font-medium tracking-widest uppercase text-[#C0440E] border border-[#C0440E] px-3 py-1">1er → 3 juin 2026</span>
-          <span className="text-[#6B6459] text-sm">·</span>
-          <span className="font-serif text-2xl font-black text-[#C0440E]">{Math.round(totalKm)} <span className="text-xs font-sans font-medium uppercase tracking-widest text-[#6B6459]">km</span></span>
-          <span className="text-[#6B6459] text-sm">·</span>
-          <span className="font-serif text-2xl font-black text-[#C0440E]">3 <span className="text-xs font-sans font-medium uppercase tracking-widest text-[#6B6459]">jours</span></span>
-          <span className="text-[#6B6459] text-sm">·</span>
-          <span className="font-serif text-2xl font-black text-[#C0440E]">{haltes.length} <span className="text-xs font-sans font-medium uppercase tracking-widest text-[#6B6459]">étapes</span></span>
-          <span className="text-[#6B6459] text-sm">·</span>
-          <span className="font-serif text-2xl font-black text-[#C0440E]">{nbInscrits} <span className="text-xs font-sans font-medium uppercase tracking-widest text-[#6B6459]">inscrits</span></span>
-          <span className="text-[#6B6459] text-sm">·</span>
-          <span className="font-serif text-2xl font-black text-[#C0440E]">{nbLettres} <span className="text-xs font-sans font-medium uppercase tracking-widest text-[#6B6459]">lettres</span></span>
-        </div>
-
-        <div className="md:grid md:grid-cols-3 md:gap-8 mb-10">
-          <div className="md:col-span-2 space-y-4 text-[0.9rem] md:text-[0.95rem] leading-relaxed text-[#3D3530]">
-            <blockquote className="border-l-4 border-[#C0440E] pl-5 font-serif italic text-base md:text-lg text-[#1C1917] leading-snug">En 1936, les ouvriers grévistes ont obtenu les congés payés en maintenant la pression sur leurs élus.</blockquote>
-            <p>En 2026, <strong className="font-medium text-[#1C1917]">d&apos;étranges Facteur·ices à bicyclette</strong> traverseront la Wallonie jusqu&apos;au Parlement de la FWB, à Bruxelles, pour porter les lettres de centaines — voire de milliers — de citoyen·nes en lutte.</p>
-            <p>De proche en proche, d&apos;école en école, nous collecterons des lettres manuscrites pour les déposer en personne là où les décisions se prennent. Parce que certains messages méritent d&apos;être portés à la force des jambes.</p>
+      <section className="pt-20 pb-8 px-4 md:px-8 max-w-5xl mx-auto">
+        <div className="md:flex md:items-start md:gap-8 mb-10">
+          <div className="flex-1">
+            <h1 className="font-serif text-5xl md:text-7xl font-black leading-[1.05] mb-4">Facteurs<br />à <em className="italic text-[#C0440E]">bicyclette</em></h1>
+            <p className="font-serif italic text-lg md:text-xl text-[#6B6459]">Périple épiscolaire à travers la Wallonie</p>
           </div>
-          <div className="mt-6 md:mt-0 flex md:justify-end">
-            <div className="relative w-full max-w-[200px]" style={{ paddingBottom: "100%" }}>
-              <iframe src="https://www.youtube.com/embed/fx9p-qHkqdU" title="Facteurs à bicyclette" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="absolute inset-0 w-full h-full border border-black/10 object-cover" />
+          <div className="mt-6 md:mt-2 md:text-right md:min-w-[180px]">
+            <span className="inline-block text-[10px] font-medium tracking-widest uppercase text-[#C0440E] border border-[#C0440E] px-3 py-1 mb-3">1er → 3 juin 2026</span>
+            <div className="space-y-1 text-sm">
+              <p className="font-serif text-3xl font-black text-[#C0440E] leading-none">3 <span className="text-xs font-sans font-medium uppercase tracking-widest text-[#6B6459]">jours</span></p>
+              <p className="font-serif text-3xl font-black text-[#C0440E] leading-none">{haltes.length} <span className="text-xs font-sans font-medium uppercase tracking-widest text-[#6B6459]">étapes</span></p>
+              <p className="font-serif text-3xl font-black text-[#C0440E] leading-none">{Math.round(totalKm)} <span className="text-xs font-sans font-medium uppercase tracking-widest text-[#6B6459]">kilomètres</span></p>
+              <p className="font-serif text-3xl font-black text-[#C0440E] leading-none">{nbInscrits} <span className="text-xs font-sans font-medium uppercase tracking-widest text-[#6B6459]">inscrits officiellemnt</span></p>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3">
-          <Link href="/inscription" className="bg-[#C0440E] text-white font-medium px-7 py-3 hover:bg-[#8A2E06] transition-colors">Rejoindre l&apos;aventure →</Link>
-          <Link href="/action" className="border border-black/20 text-[#1C1917] font-medium px-7 py-3 hover:border-black/50 transition-colors">En savoir plus</Link>
-          <Link href="/lettre" className="border border-[#C0440E] text-[#C0440E] font-medium px-7 py-3 hover:bg-[#C0440E]/5 transition-colors">✉️ Modèle de lettre</Link>
-          <a href="#parcours" className="border border-black/20 text-[#1C1917] font-medium px-7 py-3 hover:border-black/50 transition-colors">Voir le parcours</a>
-          <Link href="/faq" className="border border-black/20 text-[#1C1917] font-medium px-7 py-3 hover:border-black/50 transition-colors">❓ FAQ</Link>
+        <div className="space-y-4 text-[0.9rem] md:text-[0.95rem] leading-relaxed text-[#3D3530]">
+          <blockquote className="border-l-4 border-[#C0440E] pl-5 font-serif italic text-base md:text-lg text-[#1C1917] leading-snug">En 1936, les ouvriers grévistes ont obtenu les congés payés en maintenant la pression sur leurs élus.</blockquote>
+          <p>En 2026, <strong className="font-medium text-[#1C1917]">d&apos;étranges Facteur·ices à bicyclette</strong> ont traversé la Wallonie jusqu&apos;au Parlement de la FWB, à Bruxelles, pour porter les lettres de centaines de citoyen·nes en lutte.</p>
+          <p>De proche en proche, d&apos;école en école, ils ont collecté des lettres manuscrites pour les déposer en personne là où les décisions se prennent. Parce que certains messages méritent d&apos;être portés à la force des jambes.</p>
         </div>
       </section>
 
-      {/* COMPTEUR LETTRES */}
-      <section className="bg-[#C0440E] text-white px-4 py-10 text-center">
-        <p className="text-[10px] uppercase tracking-widest text-white/70 mb-2">Lettres récoltées</p>
-        <p className="font-serif text-6xl md:text-8xl font-black">{nbLettres}</p>
-        <p className="text-sm text-white/70 mt-2">Courriers qui seront portés au Parlement de la FWB</p>
+      {/* COMPTEUR LETTRES + PHOTO */}
+      <section className="bg-[#C0440E] text-white">
+        <div className="max-w-5xl mx-auto px-4 md:px-8 py-12 md:grid md:grid-cols-2 md:gap-8 md:items-center">
+          <div className="text-center md:text-left mb-8 md:mb-0">
+            <p className="text-[10px] uppercase tracking-widest text-white/70 mb-2">Lettres récoltées</p>
+            <p className="font-serif text-7xl md:text-9xl font-black leading-none">{nbLettres}</p>
+            <p className="text-sm text-white/70 mt-3">Courriers portés au Parlement de la FWB</p>
+            <div className="mt-6">
+              <Link href="/belles-lettres" className="inline-block bg-white text-[#C0440E] font-bold px-8 py-3 hover:bg-[#F5F0E8] transition-colors">
+                Découvrir des lettres →
+              </Link>
+            </div>
+          </div>
+          <div className="flex justify-center">
+            <img
+              src="/lettres/tas-de-lettres.jpg"
+              alt="Les lettres récoltées"
+              className="w-full max-w-md border-4 border-white/20 shadow-lg object-cover"
+              style={{ maxHeight: "350px" }}
+            />
+          </div>
+        </div>
       </section>
 
       {/* CARTE ANIMÉE */}
