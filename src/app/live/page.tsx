@@ -70,15 +70,12 @@ const kmBornes: Record<1 | 2 | 3, [number, number]> = {
 // ── PAGE ───────────────────────────────────────────────────────────────────
 
 export default function LivePage() {
-  console.log("🔵 LivePage RENDER");
   const [locations, setLocations] = useState<{ lat: number; lng: number; created_at: string }[]>([]);
   const [autoJour, setAutoJour] = useState(true);
   const [carteJour, setCarteJour] = useState<1 | 2 | 3>(1);
 
   useEffect(() => {
-    console.log("🔄 LivePage useEffect LOAD"); // ← AJOUTER
     const load = async () => {
-      console.log("📡 Live: fetching locations...");
       let allData: { lat: number; lng: number; created_at: string }[] = [];
       let from = 0;
       const pageSize = 1000;
@@ -97,16 +94,13 @@ export default function LivePage() {
           hasMore = false;
         }
       }
-      console.log("📡 Live: got", allData.length, "locations");
       setLocations(allData);
     };
     load();
     const interval = setInterval(() => {
-      console.log("⏰ Live: interval tick"); // ← AJOUTER
       load();
     }, 15000);
     return () => {
-      console.log("🛑 Live: cleanup interval"); // ← AJOUTER
       clearInterval(interval);
     };
   }, []);
