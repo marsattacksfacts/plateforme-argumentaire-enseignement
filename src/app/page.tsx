@@ -101,10 +101,6 @@ export default function Home() {
       {/* ÉPILOGUE */}
       <section className="pb-8 px-4 md:px-8 max-w-5xl mx-auto">
         <div className="md:grid md:grid-cols-2 md:gap-8 md:items-start">
-          <div className="space-y-4 text-[0.9rem] md:text-[0.95rem] leading-relaxed text-[#3D3530]">
-            <p>En voilà une aventure humaine qui se termine. Et quand la voix de plus de dix mille citoyens, qui ont proactivement fait le choix d&apos;écrire ou de signer une lettre, de l&apos;apporter physiquement à un facteur, représentant par cette action une proportion bien plus large d&apos;autres citoyens... Quand cette voix se retrouve accueillie par des chevaux de frise, on ne peut que se dire qu&apos;une nouvelle aventure commence.</p>
-            <p>La lutte pour l&apos;équité dans l&apos;éducation sera âpre, mais nous sommes déterminés. À très vite, sur le chemin de cette lutte !</p>
-          </div>
           <div className="mt-6 md:mt-0 flex justify-center">
             <img
               src="/photos/chevaux-de-frise.jpg"
@@ -112,6 +108,10 @@ export default function Home() {
               className="w-full max-w-md border-2 border-black/10 shadow-md object-cover"
               style={{ maxHeight: "350px" }}
             />
+          </div>
+          <div className="space-y-4 text-[0.9rem] md:text-[0.95rem] leading-relaxed text-[#3D3530]">
+            <p>En voilà une aventure humaine qui se termine. Et quand la voix de plus de dix mille citoyens, qui ont proactivement fait le choix d&apos;écrire ou de signer une lettre, de l&apos;apporter physiquement à un facteur, représentant par cette action une proportion bien plus large d&apos;autres citoyens... Quand cette voix se retrouve accueillie par des chevaux de frise, on ne peut que se dire qu&apos;une nouvelle aventure commence.</p>
+            <p>La lutte pour l&apos;équité dans l&apos;éducation sera âpre, mais nous sommes déterminés. À très vite, sur le chemin de cette lutte !</p>
           </div>
         </div>
       </section>
