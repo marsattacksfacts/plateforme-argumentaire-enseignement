@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     locale: "fr_BE",
     images: [
       {
-        url: "/photos/chevaux-de-frise.jpg",
+        url: "/photos/chevaux-de-frise.jpeg",
         width: 1200,
         height: 630,
         alt: "Vélos bloqués par des chevaux de frise devant le Parlement de la FWB",

@@ -103,7 +103,7 @@ export default function Home() {
         <div className="md:grid md:grid-cols-2 md:gap-8 md:items-start">
           <div className="mt-6 md:mt-0 flex justify-center">
             <img
-              src="/photos/chevaux-de-frise.jpg"
+              src="/photos/chevaux-de-frise.jpeg"
               alt="Vélos bloqués par des chevaux de frise devant le Parlement"
               className="w-full max-w-md border-2 border-black/10 shadow-md object-cover"
               style={{ maxHeight: "350px" }}
