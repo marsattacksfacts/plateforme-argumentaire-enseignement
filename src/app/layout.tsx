@@ -2,13 +2,21 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Facteurs à bicyclette — Périple épiscolaire 2026",
-  description: "169 km à vélo à travers la Wallonie pour porter les lettres des citoyen·nes au Parlement de la FWB. Rejoignez l'aventure !",
+  title: "Facteur·ices à bicyclette — Périple épiscolaire 2026",
+  description: "169 km à vélo à travers la Wallonie pour porter les lettres des citoyen·nes au Parlement de la FWB. Plus de 10 000 lettres récoltées, une aventure humaine et militante.",
   openGraph: {
-    title: "Facteurs à bicyclette — Périple épiscolaire 2026",
+    title: "Facteur·ices à bicyclette — Périple épiscolaire 2026",
     description: "169 km à vélo à travers la Wallonie pour porter les lettres des citoyen·nes au Parlement de la FWB.",
     type: "website",
     locale: "fr_BE",
+    images: [
+      {
+        url: "/photos/chevaux-de-frise.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Vélos bloqués par des chevaux de frise devant le Parlement de la FWB",
+      },
+    ],
   },
 };
 
